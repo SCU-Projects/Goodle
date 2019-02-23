@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +32,7 @@ public class UserService {
 	}
 	
 	public User addUser(User user) {
+	    user.setUserName(user.getUserName().replaceAll("\\s+",""));
 		if(userRepository.findByUserName(user.getUserName()) != null) {
 			logger.error("POST User {} already exists.",user.getUserName());
 			return null;

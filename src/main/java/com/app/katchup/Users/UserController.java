@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.*;
 import java.util.List;
 
 @RestController
@@ -32,7 +34,7 @@ public class UserController {
 	}
 	
 	@PostMapping()
-	public ResponseEntity<User> addUser(@RequestBody User user){
+	public ResponseEntity<User> addUser(@RequestBody @Valid User user){
 		user = userService.addUser(user);
 		if(user == null)
 			return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);

@@ -2,8 +2,8 @@
 !.mvn/wrapper/maven-wrapper.jar
 
 ### Project Files ###
-*.log*
 *.log
+/logsFolder/
 
 ### STS ###
 .apt_generated
