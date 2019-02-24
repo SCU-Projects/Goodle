@@ -1,4 +1,4 @@
-package com.app.katchup.MeetingResponse;
+package com.app.katchup.MeetingResponse.model;
 
 public enum Decision {
     ACCEPT,
