@@ -1,4 +1,4 @@
-package com.app.katchup.CreateMeeting;
+package com.app.katchup.CreateMeeting.model;
 
 public enum Response {
 

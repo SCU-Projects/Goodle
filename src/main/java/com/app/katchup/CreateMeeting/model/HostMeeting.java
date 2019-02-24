@@ -1,6 +1,6 @@
-package com.app.katchup.CreateMeeting;
+package com.app.katchup.CreateMeeting.model;
 
-import com.app.katchup.MeetingResponse.Decision;
+
 import com.app.katchup.Users.UserConstants;
 import org.springframework.data.annotation.Id;
 import sun.util.resources.Bundles;
@@ -19,7 +19,7 @@ public class HostMeeting {
     private String meetingId;
     @NotNull(message = UserConstants.userNameNullMessage)
     @NotEmpty
-    private Decision decision;
+    private Response decision;
     @NotNull(message = UserConstants.dateTimeNullMessage)
     @NotEmpty
     private LocalDateTime startDateTime;
