@@ -11,5 +11,8 @@ import java.util.List;
 public interface MeetingResponseRepository extends CrudRepository<MeetingInboxResponse, String>{
     @Query(value = "{'userName' : ?0}", fields = "{'meetingId':1}")
     List<Inbox> findInboxByUserName(String userName);
+
+    @Query(value = "{'userName' : ?0, 'meetingId' : ?1 }")
+    MeetingInboxResponse findbyUserNameAndMeetingID(String userName, String meetingId);
 }
 
