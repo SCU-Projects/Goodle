@@ -42,7 +42,7 @@ public class MeetingInboxResponseController {
     }
 
     @PutMapping("/meetings/{meetingId}/response")
-    public ResponseEntity<Decision> putInboxForUserDecision(@PathVariable String meetingId,
+    public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
                                                                         @RequestBody MeetingResponse body) {
         body.setMeetingId(meetingId);
         User user =  userService.getUserByUserName(body.getUserName());
@@ -51,8 +51,7 @@ public class MeetingInboxResponseController {
             return new ResponseEntity<>(storedDecision, HttpStatus.OK);
           }
           else{
-              return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+              return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
           }
-
     }
 }
