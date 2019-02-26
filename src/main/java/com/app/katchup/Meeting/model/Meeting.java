@@ -3,6 +3,7 @@ package com.app.katchup.Meeting.model;
 
 import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
+import com.app.katchup.Users.UserService;
 import org.springframework.data.annotation.Id;
 
 import javax.persistence.GeneratedValue;
@@ -38,7 +39,7 @@ public class Meeting {
     @NotEmpty
     int duration;
     @NotNull(message = MeetingConstants.userNameNullMessage)
-    @Size(min = MeetingConstants.userNameMinLength, max = MeetingConstants.userNameMaxLength)
+    @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
     private String host;
     @NotNull(message = MeetingConstants.pollNullMessage)
     private Decision poll;
