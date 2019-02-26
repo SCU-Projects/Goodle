@@ -45,8 +45,7 @@ public class MeetingInboxResponseController {
     public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
                                                                         @RequestBody MeetingResponse body) {
         body.setMeetingId(meetingId);
-        User user =  userService.getUserByUserName(body.getUserName());
-          if(user.getPassword().equals(body.getUserPassword())) { //for comparing the passwords
+        if(userService.isCredentialsMatched(body.getUserName(),body.getUserPassword())) { //for comparing the passwords
             Decision storedDecision = meetingResponseService.putResponseForUserDecision(body);
             return new ResponseEntity<>(storedDecision, HttpStatus.OK);
           }
