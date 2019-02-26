@@ -44,7 +44,7 @@ public class MeetingResponseService {
         List<String> acceptedInvitees = getUserNameFromMeetingResponses(Decision.ACCEPT, meetingInboxResponseList);
         List<String> declinedInvitees = getUserNameFromMeetingResponses(Decision.DECLINE, meetingInboxResponseList);
         List<String> polledInvitees = getUserNameFromMeetingResponses(Decision.POLL, meetingInboxResponseList);
-        List<String> goWithMajorityInvitees = getUserNameFromMeetingResponses(Decision.POLL, meetingInboxResponseList);
+        List<String> goWithMajorityInvitees = getUserNameFromMeetingResponses(Decision.GO_WITH_MAJORITY, meetingInboxResponseList);
 
         MeetingStats meetingStats = new MeetingStats();
         meetingStats.setMeetingId(meetingId);
