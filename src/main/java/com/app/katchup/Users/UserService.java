@@ -57,4 +57,11 @@ public class UserService {
 		return user;
 	}
 
+	public boolean isCredentialsMatched(String userName, String password){
+		User user =  this.getUserByUserName(userName);
+		if(user.getPassword().equals(password))
+			return true;
+		return false;
+	}
+
 }
