@@ -3,6 +3,7 @@ package com.app.katchup.Meeting.model;
 
 import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
+import com.app.katchup.Users.UserService;
 import org.springframework.data.annotation.Id;
 
 import javax.persistence.GeneratedValue;
@@ -14,35 +15,35 @@ import javax.xml.ws.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class HostMeeting {
+public class Meeting {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private String meetingId;
     @GeneratedValue(strategy = GenerationType.AUTO)
     private  String password;
-    @NotNull(message = UserConstants.dateTimeNullMessage)
+    @NotNull(message = MeetingConstants.dateTimeNullMessage)
     @NotEmpty
     private LocalDateTime startDateTime;
-    @NotNull(message = UserConstants.dateTimeNullMessage)
+    @NotNull(message = MeetingConstants.dateTimeNullMessage)
     @NotEmpty
     private LocalDateTime endDateTime;
-    @NotNull(message = UserConstants.toListNullMessage)
+    @NotNull(message = MeetingConstants.inviteListNullMessage)
     List<String> inviteList;
-    @NotNull(message = UserConstants.venueNullMessage)
+    @NotNull(message = MeetingConstants.venueNullMessage)
     @NotEmpty
-    String Venue;
-    @NotNull(message = UserConstants.responseNullMessage)
+    String venue;
+    @NotNull(message = MeetingConstants.responseNullMessage)
     @NotEmpty
     private Decision response;
-    @NotNull(message = UserConstants.durationNullMessage)
+    @NotNull(message = MeetingConstants.durationNullMessage)
     @NotEmpty
     int duration;
     @NotNull(message = UserConstants.userNameNullMessage)
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
     private String host;
-    @NotNull(message = UserConstants.pollNullMessage)
+    @NotNull(message = MeetingConstants.pollNullMessage)
     private Decision poll;
-    int Seats;
+    int seats;
 
 
 
