@@ -65,7 +65,6 @@ public class MeetingResponseService {
     }
 
     private List<String> getUserNameFromMeetingResponses(Decision decision, List<MeetingInboxResponse> meetingInboxResponseList){
-        List<String> results = new ArrayList<>();
         List<String> filteredInvitees = meetingInboxResponseList.stream()
                 .filter(response -> response.getDecision() == decision)
                 .map(MeetingInboxResponse::getUserName)
