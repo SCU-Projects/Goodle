@@ -32,6 +32,6 @@ public class MeetingInboxResponse {
     private String meetingId;
     @NotEmpty
     private Decision decision;
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+    private LocalDateTime alternativeStartDateTime;
+    private LocalDateTime alternativeEndDateTime;
 }

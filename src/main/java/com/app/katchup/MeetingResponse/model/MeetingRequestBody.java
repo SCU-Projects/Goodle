@@ -6,7 +6,7 @@ import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 @Data
-public class MeetingResponse {
+public class MeetingRequestBody {
     @NotEmpty
     private String userName;
     @NotEmpty

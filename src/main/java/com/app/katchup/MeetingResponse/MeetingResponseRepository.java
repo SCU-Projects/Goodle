@@ -1,4 +1,5 @@
 package com.app.katchup.MeetingResponse;
+import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.MeetingResponse.model.Inbox;
 import com.app.katchup.MeetingResponse.model.MeetingInboxResponse;
 import org.springframework.data.mongodb.repository.Query;
@@ -14,5 +15,8 @@ public interface MeetingResponseRepository extends CrudRepository<MeetingInboxRe
 
     @Query(value = "{'userName' : ?0, 'meetingId' : ?1 }")
     MeetingInboxResponse findbyUserNameAndMeetingID(String userName, String meetingId);
+
+    @Query(value = "{'meetingId' : ?0}")
+    List<MeetingInboxResponse> findAllbyMeetingID(String meetingId);
 }
 
