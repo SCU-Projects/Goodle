@@ -23,4 +23,6 @@ public class MeetingInboxResponse {
     private Decision decision;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
+
 }
+

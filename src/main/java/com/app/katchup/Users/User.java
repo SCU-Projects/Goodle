@@ -33,5 +33,8 @@ public class User {
 	@NotNull(message = UserConstants.passwordNullMessage)
 	@Size(min = UserConstants.passwordMinLength, max = UserConstants.passwordMaxLength)
 	private String password;
+
+
+
 }
 
