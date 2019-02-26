@@ -38,7 +38,7 @@ public class Meeting {
     @NotNull(message = MeetingConstants.durationNullMessage)
     @NotEmpty
     int duration;
-    @NotNull(message = MeetingConstants.userNameNullMessage)
+    @NotNull(message = UserConstants.userNameNullMessage)
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
     private String host;
     @NotNull(message = MeetingConstants.pollNullMessage)
