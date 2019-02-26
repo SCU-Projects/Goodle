@@ -22,6 +22,9 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private  String password;
 
+    @NotNull(message = MeetingConstants.SubjectNullMessage)
+    private String subject;
+
     @NotNull(message = MeetingConstants.dateTimeNullMessage)
     @NotEmpty
     private LocalDateTime startDateTime;

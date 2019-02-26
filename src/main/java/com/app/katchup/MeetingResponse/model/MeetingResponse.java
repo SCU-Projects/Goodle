@@ -19,5 +19,8 @@ public class MeetingResponse {
     Decision decision;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
+
+//    get the status from here , and check it.
+
 }
 

@@ -1,10 +1,8 @@
 package com.app.katchup.MeetingResponse;
 
 import com.app.katchup.MeetingResponse.model.Decision;
-import com.app.katchup.MeetingResponse.model.Inbox;
 import com.app.katchup.MeetingResponse.model.MeetingInboxResponse;
 import com.app.katchup.MeetingResponse.model.MeetingResponse;
-import com.app.katchup.Users.User;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,9 +32,9 @@ public class MeetingInboxResponseController {
     }
 
     @GetMapping("/inbox/{userName}")
-    public ResponseEntity<List<Inbox>> getInboxForUserName(@PathVariable String userName){
+    public ResponseEntity<List<String>> getInboxForUserName(@PathVariable String userName) {
         //Returns only the meeting-id
-        List<Inbox> invites = meetingResponseService.getInboxForUserName(userName);
+        List<String> invites = meetingResponseService.getInboxForUserName(userName);
         logger.info(String.format("Returning %s meeting invites for user:%s", invites.size(), userName));
         return new ResponseEntity<>(invites, HttpStatus.OK);
     }

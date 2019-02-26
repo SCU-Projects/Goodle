@@ -1,7 +1,6 @@
 package com.app.katchup.MeetingResponse;
 
 import com.app.katchup.MeetingResponse.model.Decision;
-import com.app.katchup.MeetingResponse.model.Inbox;
 import com.app.katchup.MeetingResponse.model.MeetingInboxResponse;
 import com.app.katchup.MeetingResponse.model.MeetingResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +13,8 @@ public class MeetingResponseService {
     @Autowired
     MeetingResponseRepository meetingResponseRepo;
 
-    public List<Inbox> getInboxForUserName(String userName){
-        return meetingResponseRepo.findInboxByUserName(userName);
+    public List<String> getInboxForUserName(String userName) {
+        return meetingResponseRepo.findMeetingIdByUserName(userName);
     }
 
     public MeetingInboxResponse postInboxForUserName(MeetingInboxResponse meetingInboxResponse){
