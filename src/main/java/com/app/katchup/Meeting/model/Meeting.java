@@ -41,10 +41,6 @@ public class Meeting {
     @NotEmpty
     private Decision response;
 
-    @NotNull(message = MeetingConstants.durationNullMessage)
-    @NotEmpty
-    int duration;
-
     @NotNull(message = UserConstants.userNameNullMessage)
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
     private String host;
