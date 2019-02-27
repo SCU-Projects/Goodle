@@ -45,6 +45,8 @@ public class Meeting {
     @NotNull(message = MeetingConstants.pollNullMessage)
     private Decision poll;
     int seats;
+    @NotEmpty
+    private Status status;
 
 
 

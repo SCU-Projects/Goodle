@@ -17,6 +17,9 @@ public class MeetingController {
     @PostMapping("/meeting/create")
     public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting){
         Meeting meetingCreated=meetingService.createMeeting(meeting);
+        if(meetingCreated==null){
+            return new ResponseEntity<>(meetingCreated,HttpStatus.CONFLICT);
+        }
         return new ResponseEntity<>(meetingCreated, HttpStatus.CREATED);
     }
 }
