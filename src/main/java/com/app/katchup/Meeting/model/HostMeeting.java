@@ -1,19 +1,27 @@
 package com.app.katchup.Meeting.model;
 
 
-import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.ws.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Document(collection = "Meeting")
 public class HostMeeting {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -31,9 +39,6 @@ public class HostMeeting {
     @NotNull(message = UserConstants.venueNullMessage)
     @NotEmpty
     String Venue;
-    @NotNull(message = UserConstants.responseNullMessage)
-    @NotEmpty
-    private Decision response;
     @NotNull(message = UserConstants.durationNullMessage)
     @NotEmpty
     int duration;
@@ -41,7 +46,7 @@ public class HostMeeting {
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
     private String host;
     @NotNull(message = UserConstants.pollNullMessage)
-    private Decision poll;
+    private boolean isPollAllowed;
     int Seats;
 
 
