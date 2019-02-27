@@ -1,6 +1,5 @@
 package com.app.katchup.MeetingResponse.model;
 
-import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;

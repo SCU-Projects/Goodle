@@ -39,18 +39,19 @@ public class MeetingInboxResponseController {
     }
 
     @GetMapping("/meetings/{meetingId}/response")
-    public ResponseEntity<MeetingInboxResponse> getMeetingResponseForUser(@RequestBody MeetingRequestBody body) {
-        if (userService.isCredentialsMatched(body.getUserName(), body.getUserPassword())) {
+    public ResponseEntity<MeetingInboxResponse> getMeetingResponseForUser(@PathVariable String meetingId,
+                                                                          HttpServletRequest request) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             //client
-            MeetingInboxResponse meetingResponse = meetingResponseService.getResponseForUserMeeting(body.getUserName(),
-                    body.getMeetingId());
+            MeetingInboxResponse meetingResponse = meetingResponseService.getResponseForMeeting(
+                                                            request.getHeader("userName"), meetingId);
             return new ResponseEntity<>(meetingResponse, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping("/meetings/{meetingId}/stats")
-    public ResponseEntity<MeetingStats> getMeetingResponseForMeeting(@PathVariable String meetingId,
+    public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
                                                                      HttpServletRequest request) {
 
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
@@ -67,7 +68,7 @@ public class MeetingInboxResponseController {
                                                                             @RequestBody MeetingRequestBody body) {
         body.setMeetingId(meetingId);
         if (userService.isCredentialsMatched(body.getUserName(), body.getUserPassword())) { //for comparing the passwords
-            Decision storedDecision = meetingResponseService.putResponseForUserDecision(body);
+            Decision storedDecision = meetingResponseService.putResponseForMeeting(body);
             return new ResponseEntity<>(storedDecision, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

@@ -4,7 +4,6 @@ import com.app.katchup.MeetingResponse.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +22,7 @@ public class MeetingResponseService {
     }
 
  //update decision for client
-   public Decision putResponseForUserDecision(MeetingRequestBody meetingUserResponse){
+   public Decision putResponseForMeeting(MeetingRequestBody meetingUserResponse){
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findbyUserNameAndMeetingID(meetingUserResponse.getUserName(),
                 meetingUserResponse.getMeetingId());
         if(meetingUserResponse == null)
@@ -34,7 +33,7 @@ public class MeetingResponseService {
 
    }
 
-   public MeetingInboxResponse getResponseForUserMeeting(String userName, String meetingId){
+   public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findbyUserNameAndMeetingID(userName, meetingId);
         return meetingResponse;
    }
@@ -43,7 +42,7 @@ public class MeetingResponseService {
         List<MeetingInboxResponse> meetingInboxResponseList = meetingResponseRepo.findAllbyMeetingID(meetingId);
         List<String> acceptedInvitees = getUserNameFromMeetingResponses(Decision.ACCEPT, meetingInboxResponseList);
         List<String> declinedInvitees = getUserNameFromMeetingResponses(Decision.DECLINE, meetingInboxResponseList);
-        List<String> polledInvitees = getUserNameFromMeetingResponses(Decision.POLL, meetingInboxResponseList);
+        List<PolledParticipants> polledInvitees = getPolledParticipantsFromMeetingResponses(meetingInboxResponseList);
         List<String> goWithMajorityInvitees = getUserNameFromMeetingResponses(Decision.GO_WITH_MAJORITY, meetingInboxResponseList);
 
         MeetingStats meetingStats = new MeetingStats();
@@ -70,5 +69,19 @@ public class MeetingResponseService {
                 .map(MeetingInboxResponse::getUserName)
                 .collect(Collectors.toList());
         return filteredInvitees;
+    }
+
+    private List<PolledParticipants> getPolledParticipantsFromMeetingResponses(List<MeetingInboxResponse> meetingInboxResponseList) {
+        List<PolledParticipants> polledParticipantsList = meetingInboxResponseList.stream()
+                .filter(response -> response.getDecision() == Decision.POLL)
+                .map(response -> {
+                    PolledParticipants participant = new PolledParticipants();
+                    participant.setUserName(response.getUserName());
+                    participant.setAlternativeStartDateTime(response.getAlternativeStartDateTime());
+                    participant.setAlternativeEndDateTime(response.getAlternativeEndDateTime());
+                    return participant;
+                })
+                .collect(Collectors.toList());
+        return polledParticipantsList;
     }
 }

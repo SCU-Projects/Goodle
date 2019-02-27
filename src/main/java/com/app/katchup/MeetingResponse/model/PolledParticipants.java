@@ -4,14 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InviteesResponse {
-    List<String> accept;
-    List<String> decline;
-    List<PolledParticipants> poll;
-    List<String> goWithMajority;
+public class PolledParticipants {
+    String userName;
+    LocalDateTime alternativeStartDateTime;
+    LocalDateTime alternativeEndDateTime;
 }
