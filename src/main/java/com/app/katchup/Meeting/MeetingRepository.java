@@ -14,8 +14,8 @@ import java.util.List;
 public interface MeetingRepository extends CrudRepository<Meeting,String> {
 
 
-    @Query(value = "{'host' : ?0, 'startDateTime': ?2 , 'endDateTime':?3 , 'venue':?4}")
-    Meeting findIfHostHasDuplicateMeeting(String host, LocalDateTime startDateTime, LocalDateTime endDateTime, String venue);
+    @Query(value = "{'host' : ?0, 'startDateTime': ?1 , 'endDateTime':?2 , 'venue':?3}")
+    Meeting findMeetingByFilter(String host, LocalDateTime startDateTime, LocalDateTime endDateTime, String venue);
 
 
 

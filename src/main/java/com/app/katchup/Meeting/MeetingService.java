@@ -11,11 +11,14 @@ import org.springframework.stereotype.Service;
 public class MeetingService {
     @Autowired
     MeetingRepository meetingRepository;
-    public void createMeeting(Meeting meeting){
-        if(meetingRepository.findIfHostHasDuplicateMeeting(meeting.getHost(),meeting.getStartDateTime(),meeting.getEndDateTime(),
+    public Meeting createMeeting(Meeting meeting){
+        if(meetingRepository.findMeetingByFilter(meeting.getHost(),
+                meeting.getStartDateTime(),meeting.getEndDateTime(),
                 meeting.getVenue())==null){
             meetingRepository.save(meeting);
         }
+
+        return meeting;
 
     }
 }

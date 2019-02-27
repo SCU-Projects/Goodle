@@ -14,9 +14,9 @@ public class MeetingController {
     @Autowired
     MeetingService meetingService;
 
-    @PostMapping("/meeting")
+    @PostMapping("/meeting/create")
     public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting){
-        meetingService.createMeeting(meeting);
-        return new ResponseEntity<>(meeting, HttpStatus.OK);
+        Meeting meetingCreated=meetingService.createMeeting(meeting);
+        return new ResponseEntity<>(meetingCreated, HttpStatus.CREATED);
     }
 }
