@@ -15,10 +15,13 @@ public class MeetingService {
         if(meetingRepository.findMeetingByFilter(meeting.getHost(),
                 meeting.getStartDateTime(),meeting.getEndDateTime(),
                 meeting.getVenue())==null){
-            meetingRepository.save(meeting);
+           Meeting createdMeeting= meetingRepository.save(meeting);
+           if(createdMeeting!=null){
+               return createdMeeting;
+           }
         }
 
-        return meeting;
+        return null;
 
     }
 }
