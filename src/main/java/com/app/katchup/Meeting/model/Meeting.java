@@ -63,9 +63,6 @@ import java.util.List;
         @NotEmpty
         private Decision response;
 
-        @NotNull(message = MeetingConstants.pollNullMessage)
-        private Poll poll;
-
         @NotEmpty
         private Status status;
 
