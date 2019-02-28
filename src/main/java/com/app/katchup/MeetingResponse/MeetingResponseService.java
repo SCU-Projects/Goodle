@@ -12,8 +12,8 @@ public class MeetingResponseService {
     @Autowired
     MeetingResponseRepository meetingResponseRepo;
 
-    public List<Inbox> getInboxForUserName(String userName){
-        return meetingResponseRepo.findInboxByUserName(userName);
+    public List<String> getInboxForUserName(String userName) {
+        return meetingResponseRepo.findMeetingIdbyUserName(userName);
     }
 
     public MeetingInboxResponse postInboxForUserName(MeetingInboxResponse meetingInboxResponse){
@@ -39,7 +39,10 @@ public class MeetingResponseService {
    }
 
     public MeetingStats getStatsForMeetingId(String meetingId) {
+
         List<MeetingInboxResponse> meetingInboxResponseList = meetingResponseRepo.findAllbyMeetingID(meetingId);
+
+
         List<String> acceptedInvitees = getUserNameFromMeetingResponses(Decision.ACCEPT, meetingInboxResponseList);
         List<String> declinedInvitees = getUserNameFromMeetingResponses(Decision.DECLINE, meetingInboxResponseList);
         List<PolledParticipants> polledInvitees = getPolledParticipantsFromMeetingResponses(meetingInboxResponseList);

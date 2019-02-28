@@ -1,14 +1,17 @@
 package com.app.katchup.Meeting;
 
 import com.app.katchup.Meeting.model.Meeting;
-import com.app.katchup.MeetingResponse.model.Decision;
-import com.app.katchup.MeetingResponse.model.MeetingInboxResponse;
-import com.app.katchup.MeetingResponse.model.MeetingResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+//import com.app.katchup.MeetingResponse.model.MeetingInboxResponse;
+
 @Service
 public class MeetingService {
+
     @Autowired
     MeetingRepository meetingRepository;
     public Meeting createMeeting(Meeting meeting){
@@ -24,4 +27,13 @@ public class MeetingService {
         return null;
 
     }
+
+
+    public List<Meeting> getMeetingDetails(List<String> meetingIds) {
+        List<Meeting> meetingList = new ArrayList<>();
+        meetingRepository.findAllById(meetingIds).forEach(meetingList::add);
+        return meetingList;
+    }
+
+
 }
