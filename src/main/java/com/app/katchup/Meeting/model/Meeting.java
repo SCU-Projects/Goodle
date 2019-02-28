@@ -3,7 +3,6 @@ package com.app.katchup.Meeting.model;
 
 import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
-import com.app.katchup.Users.UserService;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
@@ -12,7 +11,6 @@ import javax.persistence.GenerationType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.ws.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 @Data
