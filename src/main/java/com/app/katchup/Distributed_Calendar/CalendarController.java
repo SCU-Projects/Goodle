@@ -1,6 +1,9 @@
 package com.app.katchup.Distributed_Calendar;
 
-import com.app.katchup.MeetingResponse.MeetingResponseRepository;
+import com.app.katchup.Distributed_Calendar.model.DistributedCalendar;
+import com.app.katchup.Distributed_Calendar.model.Event;
+import com.app.katchup.Meeting.MeetingService;
+import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Users.User;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -8,54 +11,65 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/calendar")
 public class CalendarController {
 
-//    to do
-//    get the username and verify it
     private static final Logger logger = LogManager.getLogger(CalendarController.class);
 
     @Autowired
     CalendarService calendarService;
+    @Autowired
     UserService userService;
-    MeetingResponseRepository meetingResponseRepository;
+    @Autowired
+    MeetingService meetingService;
 
-//
-//    @GetMapping("/{userName}?pwd={password}")
-//    public ResponseEntity<User> getVerifiedUser(@PathVariable String userName,@RequestParam String password){
-//        User user=  userService.getUserByUserName(userName);
-//        boolean t=userService.isCredentialsMatched(userName,password);
-//        if(user == null || t==false)
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        return new ResponseEntity<>(user, HttpStatus.OK);
-//    }
 
-    @GetMapping("/{userName}pwd={password}")
-//    need to create the class for DistributedCalendar
-    public ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, @RequestParam String password) {
-        DistributedCalendar distributedCalendar = new DistributedCalendar();
+    @GetMapping("/{userName}")
+    public ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, HttpServletRequest request) {
+
         User user = userService.getUserByUserName(userName);
-        boolean t = userService.isCredentialsMatched(userName, password);
-        if (user == null || t == false) {
-            logger.info("user credentials not valid");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-//        valid user credentials
-            List<String> meetings = meetingResponseRepository.findMeetingIdByUserName(userName);
-//        for all meets in meetings:
-//         get a meeting by meeting id, check if its status is accepted,
-//         then, get all meeting details.
-//        do this by lambda method.
-
+        if (user == null) {
+            logger.info("user name is not valid");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
+        boolean t = userService.isCredentialsMatched(user.getUserName(), request.getHeader("password"));
+        if (t) {
+            logger.info("user password not valid");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            List<String> meetingIds = calendarService.getAcceptedMeetingIds(user.getUserName());
 
-        return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
+            List<Meeting> meetingList = meetingService.getMeetingDetails(meetingIds);
+
+            DistributedCalendar distributedCalendar = new DistributedCalendar();
+
+            List<Event> eventList = meetingList.stream()
+                    .map(meeting -> {
+                        Event event = new Event();
+                        event.setEndDateTime(meeting.getEndDateTime());
+                        event.setHost(meeting.getHost());
+                        event.setMeetingId(meeting.getMeetingId());
+                        event.setStartDateTime(meeting.getStartDateTime());
+                        //                        distributedCalendar.setSubject(meeting.getSubject());
+                        event.setVenue(meeting.getVenue());
+                        return event;
+                    })
+                    .collect(Collectors.toList());
+            distributedCalendar.setEventList(eventList);
+
+            return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
+        }
 
 
     }
