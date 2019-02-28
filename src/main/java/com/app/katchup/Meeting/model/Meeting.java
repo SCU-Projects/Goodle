@@ -48,11 +48,9 @@ public class Meeting {
     @NotEmpty
     private String venue;
 
-    @NotNull(message = MeetingConstants.responseNullMessage)
-    @NotEmpty
-    private Decision response;
-
     private boolean pollAllowed;
+
+    private boolean goWithMajorityAllowed;
 
     @NotNull(message = UserConstants.userNameNullMessage)
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
