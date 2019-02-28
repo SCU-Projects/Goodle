@@ -1,6 +1,5 @@
 package com.app.katchup.MeetingResponse.model;
 
-import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,6 +31,6 @@ public class MeetingInboxResponse {
     private String meetingId;
     @NotEmpty
     private Decision decision;
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+    private LocalDateTime alternativeStartDateTime;
+    private LocalDateTime alternativeEndDateTime;
 }
