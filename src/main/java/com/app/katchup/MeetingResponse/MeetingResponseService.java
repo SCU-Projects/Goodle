@@ -1,8 +1,11 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Meeting.MeetingService;
+import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.MeetingResponse.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,8 +15,26 @@ public class MeetingResponseService {
     @Autowired
     MeetingResponseRepository meetingResponseRepo;
 
+    @Autowired
+    MeetingService meetingService;
+
     public List<Inbox> getInboxForUserName(String userName){
-        return meetingResponseRepo.findInboxByUserName(userName);
+
+        List<String> meetingIdList = meetingResponseRepo.findAllMeetingIdsbyUserName(userName);
+        List<Meeting> meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdList);
+
+        List<Inbox> inboxList = meetingDetailsList.stream().map(meeting -> {
+                Inbox inbox = new Inbox();
+                inbox.setMeetingId(meeting.getMeetingId());
+                inbox.setSubject(meeting.getSubject());
+                inbox.setVenue(meeting.getVenue());
+                inbox.setHost(meeting.getHost());
+                inbox.setStartDateTime(meeting.getStartDateTime());
+                inbox.setEndDateTime(meeting.getEndDateTime());
+                return inbox;
+        }).collect(Collectors.toList());
+
+        return inboxList;
     }
 
     public MeetingInboxResponse postInboxForUserName(MeetingInboxResponse meetingInboxResponse){
@@ -22,31 +43,39 @@ public class MeetingResponseService {
     }
 
  //update decision for client
-   public Decision putResponseForMeeting(MeetingRequestBody meetingUserResponse){
-        MeetingInboxResponse meetingResponse = meetingResponseRepo.findbyUserNameAndMeetingID(meetingUserResponse.getUserName(),
-                meetingUserResponse.getMeetingId());
-        if(meetingUserResponse == null)
+   public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception {
+        MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+        if(meetingResponse == null)
             return null;
-        meetingResponse.setDecision(meetingUserResponse.getDecision());
+        meetingResponse.setDecision(requestBody.getDecision());
+        if(requestBody.getDecision() == Decision.POLL){
+            if(meeting.isPollAllowed()) {
+                meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
+                meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
+            }
+            else
+                throw new Exception("Sorry! The meeting host didn't enable the poll option");
+        }
         meetingResponseRepo.save(meetingResponse);
-        return meetingUserResponse.getDecision();
-
+        return meetingResponse.getDecision();
    }
 
    public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
-        MeetingInboxResponse meetingResponse = meetingResponseRepo.findbyUserNameAndMeetingID(userName, meetingId);
+        MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meetingId);
         return meetingResponse;
    }
 
-    public MeetingStats getStatsForMeetingId(String meetingId) {
-        List<MeetingInboxResponse> meetingInboxResponseList = meetingResponseRepo.findAllbyMeetingID(meetingId);
+    public MeetingStats getStatsForMeeting(Meeting meeting) {
+        List<MeetingInboxResponse> meetingInboxResponseList = meetingResponseRepo.findAllbyMeetingID(meeting.getMeetingId());
         List<String> acceptedInvitees = getUserNameFromMeetingResponses(Decision.ACCEPT, meetingInboxResponseList);
         List<String> declinedInvitees = getUserNameFromMeetingResponses(Decision.DECLINE, meetingInboxResponseList);
         List<PolledParticipants> polledInvitees = getPolledParticipantsFromMeetingResponses(meetingInboxResponseList);
         List<String> goWithMajorityInvitees = getUserNameFromMeetingResponses(Decision.GO_WITH_MAJORITY, meetingInboxResponseList);
 
         MeetingStats meetingStats = new MeetingStats();
-        meetingStats.setMeetingId(meetingId);
+        meetingStats.setMeetingId(meeting.getMeetingId());
+        int seatsAvailable = meeting.getSeats() == -1 ? 1000 : meeting.getSeats();
+        meetingStats.setSeatsAvailable(seatsAvailable);
         meetingStats.setTotalResponses(meetingInboxResponseList.size());
 
         if(acceptedInvitees.size() > declinedInvitees.size())
@@ -54,6 +83,7 @@ public class MeetingResponseService {
         else
             meetingStats.setSeatsOccupied(acceptedInvitees.size());
 
+        meetingStats.setTotalSeats(seatsAvailable + meetingStats.getSeatsOccupied());
         InviteesResponse inviteesResponse = new InviteesResponse();
         inviteesResponse.setAccept(acceptedInvitees);
         inviteesResponse.setDecline(declinedInvitees);

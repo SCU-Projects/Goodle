@@ -1,5 +1,8 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Meeting.MeetingRepository;
+import com.app.katchup.Meeting.MeetingService;
+import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.MeetingResponse.model.*;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -9,8 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class MeetingInboxResponseController {
@@ -20,29 +25,37 @@ public class MeetingInboxResponseController {
     MeetingResponseService meetingResponseService;
 
     @Autowired
+    MeetingService meetingService;
+
+    @Autowired
     UserService userService;
 
     @PostMapping("/inbox")
-    public ResponseEntity<MeetingInboxResponse> postInbox(@RequestBody MeetingInboxResponse meetingInboxObject) {
-        MeetingInboxResponse invite = meetingResponseService.postInboxForUserName(meetingInboxObject);
-        logger.info(String.format("Posted meeting invite having meeting id %s for user:%s", meetingInboxObject.getMeetingId(),
-                meetingInboxObject.getUserName()));
-        return new ResponseEntity<>(invite, HttpStatus.OK);
+    public ResponseEntity<MeetingInboxResponse> postInbox(@RequestBody MeetingInboxResponse meetingInboxObject,
+                                                                                            HttpServletRequest request) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            MeetingInboxResponse invite = meetingResponseService.postInboxForUserName(meetingInboxObject);
+            logger.info(String.format("Posted meeting invite having meeting id %s for user:%s", meetingInboxObject.getMeetingId(),
+                    meetingInboxObject.getUserName()));
+            return new ResponseEntity<>(invite, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping("/inbox/{userName}")
-    public ResponseEntity<List<Inbox>> getInboxForUserName(@PathVariable String userName) {
-        //Returns only the meeting-id
-        List<Inbox> invites = meetingResponseService.getInboxForUserName(userName);
-        logger.info(String.format("Returning %s meeting invites for user:%s", invites.size(), userName));
-        return new ResponseEntity<>(invites, HttpStatus.OK);
+    public ResponseEntity<List<Inbox>> getInboxForUserName(@PathVariable String userName, HttpServletRequest request) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            List<Inbox> meetingInboxList = meetingResponseService.getInboxForUserName(userName);
+            logger.info(String.format("Returning %s meeting invites for user:%s", meetingInboxList.size(), userName));
+            return new ResponseEntity<>(meetingInboxList, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping("/meetings/{meetingId}/response")
     public ResponseEntity<MeetingInboxResponse> getMeetingResponseForUser(@PathVariable String meetingId,
                                                                           HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            //client
             MeetingInboxResponse meetingResponse = meetingResponseService.getResponseForMeeting(
                                                             request.getHeader("userName"), meetingId);
             return new ResponseEntity<>(meetingResponse, HttpStatus.OK);
@@ -52,12 +65,10 @@ public class MeetingInboxResponseController {
 
     @GetMapping("/meetings/{meetingId}/stats")
     public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
-                                                                     HttpServletRequest request) {
-
+                                                                                        HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            //host -> validate with meetingId
-            //fill seats and other parameters
-            MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeetingId(meetingId);
+            Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingIds(meetingId, request.getHeader("userName"));
+            MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeeting(meeting.get());
             return new ResponseEntity<>(meetingResponseStats, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -65,14 +76,16 @@ public class MeetingInboxResponseController {
 
     @PutMapping("/meetings/{meetingId}/response")
     public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
-                                                                            @RequestBody MeetingRequestBody body) {
-        body.setMeetingId(meetingId);
-        if (userService.isCredentialsMatched(body.getUserName(), body.getUserPassword())) { //for comparing the passwords
-            Decision storedDecision = meetingResponseService.putResponseForMeeting(body);
+                                                            HttpServletRequest request, MeetingRequestBody requestBody) throws Exception {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) { //for comparing the passwords
+            Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
+            meeting.orElseThrow(() -> new EntityNotFoundException());
+            Decision storedDecision = meetingResponseService.putResponseForMeeting(meeting.get(),
+                    request.getHeader("userName"), requestBody);
             return new ResponseEntity<>(storedDecision, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
     }
 
 }
