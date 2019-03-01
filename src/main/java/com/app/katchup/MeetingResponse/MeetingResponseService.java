@@ -78,11 +78,11 @@ public class MeetingResponseService {
 
         meetingResponse.setDecision(requestBody.getDecision());
 
-        if(requestBody.getDecision() == Decision.ACCEPT ) {
+        if(requestBody.getDecision() == Decision.ACCEPT) {
 
             if(meeting.getSeats() != -1){
                 //if first time responding or previously declined
-                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.DECLINE)
+                if(meetingResponse.getDecision() != Decision.ACCEPT)
                     meeting.setSeats(meeting.getSeats() - 1);
                 if(meeting.getSeats() == 0)
                     meeting.setStatus(Status.CLOSED);
@@ -90,8 +90,9 @@ public class MeetingResponseService {
         }
         else if(requestBody.getDecision() == Decision.DECLINE){
             if(meeting.getSeats() != -1){
-                //if first time responding or previously accepted
-                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.ACCEPT)
+
+                //if previously accepted
+                if(meetingResponse.getDecision() == Decision.ACCEPT)
                     meeting.setSeats(meeting.getSeats() + 1);
 
                 if(meeting.getSeats() > 0)

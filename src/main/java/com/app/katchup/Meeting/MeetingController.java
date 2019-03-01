@@ -65,4 +65,19 @@ public class MeetingController {
         String password = UUID.randomUUID().toString();
         return password;
     }
+
+    @PutMapping("meetings/{meetingId}")
+    public ResponseEntity<Meeting> putMeeting(@PathVariable String meetingId, @RequestBody Meeting meeting,
+                                              HttpServletRequest request) throws GenericException {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            if (meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
+                throw new GenericException("Go with majority option is allowed for meetings with unlimited capacity.");
+            meeting.setHost(request.getHeader("userName"));
+            Meeting meetingObj = meetingService.updateMeeting(meetingId, request.getHeader("userName"), meeting);
+            if (meetingObj != null)
+                return new ResponseEntity<>(meetingObj, HttpStatus.OK);
+            return new ResponseEntity<>(meetingObj, HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
 }

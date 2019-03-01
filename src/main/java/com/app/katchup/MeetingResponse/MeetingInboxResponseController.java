@@ -5,6 +5,7 @@ import com.app.katchup.Exception.NotFoundException;
 import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
+import com.app.katchup.Meeting.model.Status;
 import com.app.katchup.MeetingResponse.model.*;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -91,6 +92,9 @@ public class MeetingInboxResponseController {
 
         Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
         meeting.orElseThrow(() -> new NotFoundException("Sorry! Meeting does not exist"));
+
+        if(meeting.get().getStatus().equals(Status.DELETED))
+            throw new NotAcceptableException("Sorry! Meeting has been cancelled by the Host");
 
         //host or valid invitee
         if(!meetingService.isAuthorizedUserForAccessingMeeting(request.getHeader("userName"), meeting.get())){
