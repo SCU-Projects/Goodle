@@ -62,14 +62,9 @@ public class MeetingService {
         return meetingRepository.findById(meetingId);
     }
 
-
     private boolean isDateTimeValid(Meeting meeting ){
-       if ((meeting.getStartDateTime().compareTo(meeting.getEndDateTime()) <= 0) &&
-                (meeting.getStartDateTime().compareTo(LocalDateTime.now())>0)){
-            return true;
-        }
-       return false;
+       return ((meeting.getStartDateTime().compareTo(meeting.getEndDateTime()) <= 0) &&
+                (meeting.getStartDateTime().compareTo(LocalDateTime.now()) > 0))
     }
-
  }
 }
