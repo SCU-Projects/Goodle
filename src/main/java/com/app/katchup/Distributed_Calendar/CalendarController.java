@@ -50,7 +50,7 @@ public class CalendarController {
         } else {
             List<String> meetingIds = calendarService.getAcceptedMeetingIds(user.getUserName());
 
-            List<Meeting> meetingList = meetingService.getMeetingDetails(meetingIds);
+            List<Meeting> meetingList = meetingService.getMeetingDetailsForMeetingIds(meetingIds);
 
             DistributedCalendar distributedCalendar = new DistributedCalendar();
 

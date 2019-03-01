@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class UserService {
 
 	public boolean isCredentialsMatched(String userName, String password){
 		User user =  this.getUserByUserName(userName);
-		if(user.getPassword().equals(password))
+        if (user != null && user.getPassword().equals(password))
 			return true;
 		return false;
 	}
