@@ -34,11 +34,7 @@ public class MeetingService {
             throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data");
         }
     }
-
-    public MeetingService() {
-        super();
-    }
-
+    
     public Optional<Meeting> getMeetingDetailsForMeetingIds(String meetingId, String userName) {
        Optional<Meeting> meeting =  meetingRepository.findById(meetingId);
        meeting.orElseThrow(() -> new EntityNotFoundException("No such meeting found for given meeting id"));
