@@ -1,7 +1,7 @@
-package com.app.katchup.Distributed_Calendar;
+package com.app.katchup.DistributedCalendar;
 
-import com.app.katchup.Distributed_Calendar.model.DistributedCalendar;
-import com.app.katchup.Distributed_Calendar.model.Event;
+import com.app.katchup.DistributedCalendar.model.DistributedCalendar;
+import com.app.katchup.DistributedCalendar.model.Event;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Users.User;

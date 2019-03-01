@@ -67,9 +67,9 @@ public class MeetingInboxResponseController {
 
     @GetMapping("/meetings/{meetingId}/stats")
     public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
-                                                                                        HttpServletRequest request) {
+                                            HttpServletRequest request) throws NotFoundException {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingIds(meetingId, request.getHeader("userName"));
+            Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
             MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeeting(meeting.get());
             return new ResponseEntity<>(meetingResponseStats, HttpStatus.OK);
         }
