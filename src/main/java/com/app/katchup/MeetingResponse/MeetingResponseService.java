@@ -1,7 +1,8 @@
 package com.app.katchup.MeetingResponse;
 
-import com.app.katchup.Exception.GenericException;
-import com.app.katchup.Exception.UnauthorizedException;
+import com.app.katchup.Exception.NotAcceptableException;
+import com.app.katchup.Exception.NotFoundException;
+import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.MeetingRepository;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
@@ -58,37 +59,77 @@ public class MeetingResponseService {
         return meetingInboxResponse;
     }
 
- //update decision for client
-   public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception, GenericException {
-        MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+   public Decision putResponseForMeeting(boolean isExternalParticipant, Meeting meeting, String userName, MeetingRequestBody requestBody)
+           throws  NotFoundException, NotAcceptableException {
+
+        MeetingInboxResponse meetingResponse;
+
+        if(!isExternalParticipant)
+            meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+        else
+            meetingResponse = this.createExternalMeetingInboxResponse(meeting, userName);
+
         if(meetingResponse == null)
-            throw new UnauthorizedException("Sorry! You are not authorized to respond for this meeting");
+            throw new UnAuthorizedException("Sorry! You are not authorized to respond for this meeting");
 
         if(meeting.getSeats() == 0){
-            throw new GenericException("Sorry! No seats available"); //404 not found exception
+            throw new NotFoundException("Sorry! No seats available");
         }
+
         meetingResponse.setDecision(requestBody.getDecision());
+
         if(requestBody.getDecision() == Decision.ACCEPT ) {
-            meeting.setSeats(meeting.getSeats() - 1);
-            if(meeting.getSeats() == 0)
-                meeting.setStatus(Status.CLOSED);
+
+            if(meeting.getSeats() != -1){
+                //if first time responding or previously declined
+                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.DECLINE)
+                    meeting.setSeats(meeting.getSeats() - 1);
+                if(meeting.getSeats() == 0)
+                    meeting.setStatus(Status.CLOSED);
+            }
         }
-        else if (requestBody.getDecision() == Decision.POLL) {// not acceptable 406
+        else if(requestBody.getDecision() == Decision.DECLINE){
+            if(meeting.getSeats() != -1){
+                //if first time responding or previously accepted
+                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.ACCEPT)
+                    meeting.setSeats(meeting.getSeats() + 1);
+
+                if(meeting.getSeats() > 0)
+                    meeting.setStatus(Status.OPEN);
+            }
+        }
+        else if (requestBody.getDecision() == Decision.POLL) {
             if (!meeting.isPollAllowed())
-                throw new Exception("Sorry! The meeting host didn't enable the 'Poll' option");
+                throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Poll' option");
             meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
             meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
         }
-        else if (requestBody.getDecision() == Decision.GO_WITH_MAJORITY) {// not acceptable 406
+        else if (requestBody.getDecision() == Decision.GO_WITH_MAJORITY) {
             if (!meeting.isGoWithMajorityAllowed())
-                throw new Exception("Sorry! The meeting host didn't enable the 'Go With Majority' option");
+                throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Go With Majority' option");
         }
+
         meetingResponseRepo.save(meetingResponse);
-        meetingRepo.save(meeting);
+
+        if(isExternalParticipant){
+            //add new ext participant to the external participant list in Meeting
+            List<String> externalParticipantsList = meeting.getExtParticipantList();
+            externalParticipantsList.add(userName);
+            meeting.setExtParticipantList(externalParticipantsList);
+            meetingRepo.save(meeting);
+        }
+
         return requestBody.getDecision();
    }
 
-   public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
+    private MeetingInboxResponse createExternalMeetingInboxResponse(Meeting meeting, String userName) {
+        MeetingInboxResponse meetingResponse = new MeetingInboxResponse();
+        meetingResponse.setUserName(userName);
+        meetingResponse.setMeetingId(meeting.getMeetingId());
+        return meetingResponse;
+    }
+
+    public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meetingId);
         return meetingResponse;
    }

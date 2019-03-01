@@ -1,6 +1,7 @@
 package com.app.katchup.Meeting;
 
-import com.app.katchup.Exception.UnauthorizedException;
+import com.app.katchup.Exception.GenericException;
+import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.model.Meeting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,13 +20,13 @@ public class MeetingService {
     @Autowired
     MeetingRepository meetingRepository;
 
-    public Meeting createMeeting(Meeting meeting) throws Exception{
+    public Meeting createMeeting(Meeting meeting) throws GenericException {
         if(meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getStartDateTime(),
                                                     meeting.getEndDateTime(), meeting.getVenue()) != null){
             throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data");
         }
         if(!isDateTimeValid(meeting))
-            throw new Exception("Either the meeting start time is after end time or the meeting date is  invalid");
+            throw new GenericException("Either the meeting start time is after end time or the meeting date is  invalid");
         meeting = meetingRepository.save(meeting);
         return meeting;
     }
@@ -34,7 +35,7 @@ public class MeetingService {
        Optional<Meeting> meeting =  meetingRepository.findById(meetingId);
        meeting.orElseThrow(() -> new EntityNotFoundException("No such meeting found for given meeting id"));
        if(!this.isAuthorizedUserForAccessingMeeting(userName, meeting.get()))
-           throw new UnauthorizedException("Sorry! You don't have the permission to access this resource");
+           throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
        return meeting;
     }
 
