@@ -10,6 +10,7 @@ import com.app.katchup.MeetingResponse.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,14 +20,18 @@ public class MeetingResponseService {
     MeetingResponseRepository meetingResponseRepo;
     @Autowired
     MeetingRepository meetingRepo;
-
     @Autowired
     MeetingService meetingService;
 
     public List<Inbox> getInboxForUserName(String userName){
 
-        List<String> meetingIdList = meetingResponseRepo.findAllMeetingIdsbyUserName(userName);
-        List<Meeting> meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdList);
+        List<MeetingID> meetingIdList = meetingResponseRepo.findAllMeetingIdsbyUserName(userName);
+        List<Meeting> meetingDetailsList = new ArrayList<>();
+
+        if(meetingIdList.size() > 0){
+            List<String> meetingIdsList = meetingIdList.stream().map(meetingID -> meetingID.getMeetingId()).collect(Collectors.toList());
+            meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
+        }
 
         List<Inbox> inboxList = meetingDetailsList.stream().map(meeting -> {
                 Inbox inbox = new Inbox();
@@ -35,7 +40,13 @@ public class MeetingResponseService {
                 inbox.setVenue(meeting.getVenue());
                 inbox.setHost(meeting.getHost());
                 inbox.setStartDateTime(meeting.getStartDateTime());
+                inbox.setStatus(meeting.getStatus());
                 inbox.setEndDateTime(meeting.getEndDateTime());
+                inbox.setPassword(meeting.getPassword());
+                if (meeting.getSeats() == -1)
+                    inbox.setSeats(1000);
+                else
+                    inbox.setSeats(meeting.getSeats());
                 return inbox;
         }).collect(Collectors.toList());
 
@@ -73,6 +84,13 @@ public class MeetingResponseService {
                 throw new Exception("Sorry! The meeting host didn't enable the 'Go With Majority' option");
             meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
             meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
+        if(requestBody.getDecision() == Decision.POLL){
+            if(meeting.isPollAllowed()) {
+                meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
+                meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
+            }
+            else
+                throw new Exception("Sorry! The meeting host didn't enable the polled option");
         }
         meetingResponseRepo.save(meetingResponse);
         meetingRepo.save(meeting);
@@ -104,10 +122,10 @@ public class MeetingResponseService {
 
         meetingStats.setTotalSeats(seatsAvailable + meetingStats.getSeatsOccupied());
         InviteesResponse inviteesResponse = new InviteesResponse();
-        inviteesResponse.setAccept(acceptedInvitees);
-        inviteesResponse.setDecline(declinedInvitees);
-        inviteesResponse.setPoll(polledInvitees);
-        inviteesResponse.setGoWithMajority(goWithMajorityInvitees);
+        inviteesResponse.setAccepted(acceptedInvitees);
+        inviteesResponse.setDeclined(declinedInvitees);
+        inviteesResponse.setPolled(polledInvitees);
+        inviteesResponse.setGoneWithMajority(goWithMajorityInvitees);
         meetingStats.setInviteesResponse(inviteesResponse);
         return meetingStats;
     }
