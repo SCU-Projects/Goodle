@@ -26,7 +26,7 @@ public class CalendarService {
 
     public List<String> getAcceptedMeetingIds(String userName) {
 
-        return meetingResponseRepository.findAllMeetingIdsbyUserName(userName, Decision.ACCEPT);
+        return meetingResponseRepository.findAllMeetingIdsbyUserNameAndDecision(userName, Decision.ACCEPT);
 
     }
 

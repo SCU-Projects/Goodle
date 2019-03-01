@@ -1,7 +1,12 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Exception.NotAcceptableException;
+import com.app.katchup.Exception.NotFoundException;
+import com.app.katchup.Exception.UnAuthorizedException;
+import com.app.katchup.Meeting.MeetingRepository;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
+import com.app.katchup.Meeting.model.Status;
 import com.app.katchup.MeetingResponse.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +19,8 @@ import java.util.stream.Collectors;
 public class MeetingResponseService {
     @Autowired
     MeetingResponseRepository meetingResponseRepo;
-  
+    @Autowired
+    MeetingRepository meetingRepo;
     @Autowired
     MeetingService meetingService;
 
@@ -53,25 +59,77 @@ public class MeetingResponseService {
         return meetingInboxResponse;
     }
 
- //update decision for client
-   public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception {
-        MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+   public Decision putResponseForMeeting(boolean isExternalParticipant, Meeting meeting, String userName, MeetingRequestBody requestBody)
+           throws  NotFoundException, NotAcceptableException {
+
+        MeetingInboxResponse meetingResponse;
+
+        if(!isExternalParticipant)
+            meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+        else
+            meetingResponse = this.createExternalMeetingInboxResponse(meeting, userName);
+
         if(meetingResponse == null)
-            return null;
-        meetingResponse.setDecision(requestBody.getDecision());
-        if(requestBody.getDecision() == Decision.POLL){
-            if(meeting.isPollAllowed()) {
-                meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
-                meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
-            }
-            else
-                throw new Exception("Sorry! The meeting host didn't enable the polled option");
+            throw new UnAuthorizedException("Sorry! You are not authorized to respond for this meeting");
+
+        if(meeting.getSeats() == 0){
+            throw new NotFoundException("Sorry! No seats available");
         }
+
+        meetingResponse.setDecision(requestBody.getDecision());
+
+        if(requestBody.getDecision() == Decision.ACCEPT ) {
+
+            if(meeting.getSeats() != -1){
+                //if first time responding or previously declined
+                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.DECLINE)
+                    meeting.setSeats(meeting.getSeats() - 1);
+                if(meeting.getSeats() == 0)
+                    meeting.setStatus(Status.CLOSED);
+            }
+        }
+        else if(requestBody.getDecision() == Decision.DECLINE){
+            if(meeting.getSeats() != -1){
+                //if first time responding or previously accepted
+                if(meetingResponse.getDecision() == null || meetingResponse.getDecision() == Decision.ACCEPT)
+                    meeting.setSeats(meeting.getSeats() + 1);
+
+                if(meeting.getSeats() > 0)
+                    meeting.setStatus(Status.OPEN);
+            }
+        }
+        else if (requestBody.getDecision() == Decision.POLL) {
+            if (!meeting.isPollAllowed())
+                throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Poll' option");
+            meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
+            meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
+        }
+        else if (requestBody.getDecision() == Decision.GO_WITH_MAJORITY) {
+            if (!meeting.isGoWithMajorityAllowed())
+                throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Go With Majority' option");
+        }
+
         meetingResponseRepo.save(meetingResponse);
-        return meetingResponse.getDecision();
+
+        if(isExternalParticipant){
+            //add new ext participant to the external participant list in Meeting
+            List<String> externalParticipantsList = meeting.getExtParticipantList();
+            externalParticipantsList.add(userName);
+            meeting.setExtParticipantList(externalParticipantsList);
+            meetingRepo.save(meeting);
+        }
+
+        return requestBody.getDecision();
    }
 
-   public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
+    private MeetingInboxResponse createExternalMeetingInboxResponse(Meeting meeting, String userName) {
+        MeetingInboxResponse meetingResponse = new MeetingInboxResponse();
+        meetingResponse.setUserName(userName);
+        meetingResponse.setMeetingId(meeting.getMeetingId());
+        return meetingResponse;
+    }
+
+    public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meetingId);
         return meetingResponse;
    }

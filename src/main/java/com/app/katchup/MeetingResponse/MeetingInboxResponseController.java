@@ -1,5 +1,8 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Exception.NotAcceptableException;
+import com.app.katchup.Exception.NotFoundException;
+import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.MeetingResponse.model.*;
@@ -11,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
@@ -76,16 +78,36 @@ public class MeetingInboxResponseController {
 
     @PutMapping("/meetings/{meetingId}/response")
     public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
-                                                            HttpServletRequest request, MeetingRequestBody requestBody) throws Exception {
-        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) { //for comparing the passwords
-            Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
-            meeting.orElseThrow(() -> new EntityNotFoundException());
-            Decision storedDecision = meetingResponseService.putResponseForMeeting(meeting.get(),
-                    request.getHeader("userName"), requestBody);
-            return new ResponseEntity<>(storedDecision, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                                HttpServletRequest request, @RequestBody MeetingRequestBody requestBody)
+                                throws NotFoundException, NotAcceptableException {
 
+        boolean isExternalParticipant = false;
+
+        requestBody.setMeetingId(meetingId);
+
+        //for comparing the passwords
+        if (!userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password")))
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
+        meeting.orElseThrow(() -> new NotFoundException("Sorry! Meeting does not exist"));
+
+        //host or valid invitee
+        if(!meetingService.isAuthorizedUserForAccessingMeeting(request.getHeader("userName"), meeting.get())){
+            if(!meeting.get().isExternalParticipantsAllowed()){
+                throw new UnAuthorizedException("Sorry! User is not allowed to enter this meeting");
+            }
+            if(!meeting.get().getPassword().equals(requestBody.getMeetingPassword()))
+                throw new UnAuthorizedException("No matching records found for the provided meetingid and password");
+
+            isExternalParticipant = true;
+        }
+
+        //host or invitee or external participant with valid meeting
+        Decision storedDecision = meetingResponseService.putResponseForMeeting(isExternalParticipant, meeting.get(),
+                request.getHeader("userName"), requestBody);
+
+        return new ResponseEntity<>(storedDecision, HttpStatus.OK);
     }
 
 }

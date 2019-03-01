@@ -1,12 +1,12 @@
 package com.app.katchup.Meeting.model;
 import com.app.katchup.Meeting.MeetingConstants;
-import com.app.katchup.MeetingResponse.model.Decision;
 import com.app.katchup.Users.UserConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -44,6 +44,8 @@ public class Meeting {
     @NotNull(message = MeetingConstants.inviteListNullMessage)
     private List<String> inviteList;
 
+    private List<String> extParticipantList;
+
     @NotNull(message = MeetingConstants.venueNullMessage)
     @NotEmpty
     private String venue;
@@ -51,6 +53,8 @@ public class Meeting {
     private boolean pollAllowed;
 
     private boolean goWithMajorityAllowed;
+
+    private boolean externalParticipantsAllowed;
 
     @NotNull(message = UserConstants.userNameNullMessage)
     @Size(min = UserConstants.userNameMinLength, max = UserConstants.userNameMaxLength)
