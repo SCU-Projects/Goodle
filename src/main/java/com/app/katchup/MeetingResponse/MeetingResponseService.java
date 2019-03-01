@@ -82,15 +82,6 @@ public class MeetingResponseService {
         else if (requestBody.getDecision() == Decision.GO_WITH_MAJORITY) {// not acceptable 406
             if (!meeting.isGoWithMajorityAllowed())
                 throw new Exception("Sorry! The meeting host didn't enable the 'Go With Majority' option");
-            meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
-            meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
-        if(requestBody.getDecision() == Decision.POLL){
-            if(meeting.isPollAllowed()) {
-                meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
-                meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
-            }
-            else
-                throw new Exception("Sorry! The meeting host didn't enable the polled option");
         }
         meetingResponseRepo.save(meetingResponse);
         meetingRepo.save(meeting);
