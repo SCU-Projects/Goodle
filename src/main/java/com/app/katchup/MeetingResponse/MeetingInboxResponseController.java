@@ -1,6 +1,5 @@
 package com.app.katchup.MeetingResponse;
 
-import com.app.katchup.Meeting.MeetingRepository;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.MeetingResponse.model.*;

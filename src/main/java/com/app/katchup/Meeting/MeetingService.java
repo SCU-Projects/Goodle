@@ -56,5 +56,4 @@ public class MeetingService {
     public Optional<Meeting> getMeetingDetails(String meetingId){
         return meetingRepository.findById(meetingId);
     }
-
 }
