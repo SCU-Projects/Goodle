@@ -1,11 +1,14 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Exception.GenericException;
+import com.app.katchup.Exception.UnauthorizedException;
+import com.app.katchup.Meeting.MeetingRepository;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
+import com.app.katchup.Meeting.model.Status;
 import com.app.katchup.MeetingResponse.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +17,8 @@ import java.util.stream.Collectors;
 public class MeetingResponseService {
     @Autowired
     MeetingResponseRepository meetingResponseRepo;
+    @Autowired
+    MeetingRepository meetingRepo;
 
     @Autowired
     MeetingService meetingService;
@@ -43,21 +48,35 @@ public class MeetingResponseService {
     }
 
  //update decision for client
-   public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception {
+   public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception, GenericException {
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
         if(meetingResponse == null)
-            return null;
+            throw new UnauthorizedException("Sorry! You are Not authorized to respond for this meeting");
+
+        if(meeting.getSeats() == 0){
+            throw new GenericException("Sorry! No seats available!"); //404 not found exception
+        }
         meetingResponse.setDecision(requestBody.getDecision());
-        if(requestBody.getDecision() == Decision.POLL){
-            if(meeting.isPollAllowed()) {
-                meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
-                meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
-            }
-            else
-                throw new Exception("Sorry! The meeting host didn't enable the poll option");
+        if(requestBody.getDecision() == Decision.ACCEPT ) {
+            meeting.setSeats(meeting.getSeats() - 1);
+            if(meeting.getSeats() == 0)
+                meeting.setStatus(Status.CLOSED);
+        }
+        else if (requestBody.getDecision() == Decision.POLL) {// not acceptable 406
+            if (!meeting.isPollAllowed())
+                throw new Exception("Sorry! The meeting host didn't enable the 'Poll' option");
+            meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
+            meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
+        }
+        else if (requestBody.getDecision() == Decision.GO_WITH_MAJORITY) {// not acceptable 406
+            if (!meeting.isGoWithMajorityAllowed())
+                throw new Exception("Sorry! The meeting host didn't enable the 'Go With Majority' option");
+            meetingResponse.setAlternativeStartDateTime(requestBody.getStartDateTime());
+            meetingResponse.setAlternativeEndDateTime(requestBody.getEndDateTime());
         }
         meetingResponseRepo.save(meetingResponse);
-        return meetingResponse.getDecision();
+        meetingRepo.save(meeting);
+        return requestBody.getDecision();
    }
 
    public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){

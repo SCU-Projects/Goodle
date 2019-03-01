@@ -1,6 +1,6 @@
 package com.app.katchup.MeetingResponse;
 
-import com.app.katchup.Meeting.MeetingRepository;
+import com.app.katchup.Exception.GenericException;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.MeetingResponse.model.*;
@@ -76,7 +76,8 @@ public class MeetingInboxResponseController {
 
     @PutMapping("/meetings/{meetingId}/response")
     public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
-                                                            HttpServletRequest request, MeetingRequestBody requestBody) throws Exception {
+                                                            HttpServletRequest request, @RequestBody MeetingRequestBody requestBody) throws Exception, GenericException {
+        requestBody.setMeetingId(meetingId);
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) { //for comparing the passwords
             Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
             meeting.orElseThrow(() -> new EntityNotFoundException());

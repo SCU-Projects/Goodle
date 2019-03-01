@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 @RestController
@@ -21,7 +20,7 @@ public class MeetingController {
     UserService userService;
 
     @PostMapping("/meeting/create")
-    public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request){
+    public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws Exception{
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             meeting.setHost(request.getHeader("userName"));
             meeting.setPassword(this.generatePassword());
