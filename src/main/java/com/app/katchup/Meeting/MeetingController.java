@@ -1,6 +1,7 @@
 package com.app.katchup.Meeting;
 
 import com.app.katchup.Exception.GenericException;
+import com.app.katchup.Exception.NotFoundException;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,15 +39,24 @@ public class MeetingController {
     }
 
     @GetMapping("/meetings/{meetingId}/details")
-    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request){
+    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws NotFoundException {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingIds(meetingId, request.getHeader("userName"));
+            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
             if(meetingDetails != null) {
                 if (meetingDetails.get().getSeats() == -1)
                     meetingDetails.get().setSeats(1000);
                 return new ResponseEntity<>(meetingDetails, HttpStatus.OK);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @DeleteMapping("/meetings/{meetingId}")
+    public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws GenericException {
+        if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            meetingService.deleteMeeting(meetingId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

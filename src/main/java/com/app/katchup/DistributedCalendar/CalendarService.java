@@ -1,4 +1,4 @@
-package com.app.katchup.Distributed_Calendar;
+package com.app.katchup.DistributedCalendar;
 
 
 import com.app.katchup.MeetingResponse.MeetingResponseRepository;

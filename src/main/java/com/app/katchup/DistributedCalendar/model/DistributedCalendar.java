@@ -1,4 +1,4 @@
-package com.app.katchup.Distributed_Calendar.model;
+package com.app.katchup.DistributedCalendar.model;
 
 import lombok.Data;
 
