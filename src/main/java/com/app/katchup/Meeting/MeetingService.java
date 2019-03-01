@@ -1,6 +1,7 @@
 package com.app.katchup.Meeting;
 
 import com.app.katchup.Exception.UnauthorizedException;
+import com.app.katchup.Exception.GenericException;
 import com.app.katchup.Meeting.model.Meeting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class MeetingService {
             throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data");
         }
         if(!isDateTimeValid(meeting))
-            throw new Exception("Either the meeting start time is after end time or the meeting date is  invalid");
+            throw new GenericException("Either the meeting start time is after end time or the meeting date is  invalid");
         meeting = meetingRepository.save(meeting);
         return meeting;
     }
