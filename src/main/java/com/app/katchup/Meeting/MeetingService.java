@@ -22,7 +22,7 @@ public class MeetingService {
     public Meeting createMeeting(Meeting meeting) throws Exception{
         if(meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getStartDateTime(),
                                                     meeting.getEndDateTime(), meeting.getVenue()) != null){
-            throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data")
+            throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data");
         }
         if(!isDateTimeValid(meeting))
             throw new Exception("Either the meeting start time is after end time or the meeting date is  invalid");
@@ -60,7 +60,6 @@ public class MeetingService {
 
     private boolean isDateTimeValid(Meeting meeting ){
        return ((meeting.getStartDateTime().compareTo(meeting.getEndDateTime()) <= 0) &&
-                (meeting.getStartDateTime().compareTo(LocalDateTime.now()) > 0))
+                (meeting.getStartDateTime().compareTo(LocalDateTime.now()) > 0));
     }
- }
 }
