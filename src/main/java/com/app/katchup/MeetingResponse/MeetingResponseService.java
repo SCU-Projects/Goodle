@@ -62,10 +62,10 @@ public class MeetingResponseService {
    public Decision putResponseForMeeting(Meeting meeting, String userName, MeetingRequestBody requestBody) throws Exception, GenericException {
         MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
         if(meetingResponse == null)
-            throw new UnauthorizedException("Sorry! You are Not authorized to respond for this meeting");
+            throw new UnauthorizedException("Sorry! You are not authorized to respond for this meeting");
 
         if(meeting.getSeats() == 0){
-            throw new GenericException("Sorry! No seats available!"); //404 not found exception
+            throw new GenericException("Sorry! No seats available"); //404 not found exception
         }
         meetingResponse.setDecision(requestBody.getDecision());
         if(requestBody.getDecision() == Decision.ACCEPT ) {
