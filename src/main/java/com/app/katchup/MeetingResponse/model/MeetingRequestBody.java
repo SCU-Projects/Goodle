@@ -8,10 +8,6 @@ import java.time.LocalDateTime;
 @Data
 public class MeetingRequestBody {
     @NotEmpty
-    private String userName;
-    @NotEmpty
-    private String userPassword;
-    @NotEmpty
     private String meetingId;
     @NotEmpty
     private String meetingPassword;
