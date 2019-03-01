@@ -34,6 +34,7 @@ public class MeetingInboxResponseController {
     public ResponseEntity<MeetingInboxResponse> postInbox(@RequestBody MeetingInboxResponse meetingInboxObject,
                                                                                             HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            meetingInboxObject.setUserName(request.getHeader("userName"));
             MeetingInboxResponse invite = meetingResponseService.postInboxForUserName(meetingInboxObject);
             logger.info(String.format("Posted meeting invite having meeting id %s for user:%s", meetingInboxObject.getMeetingId(),
                     meetingInboxObject.getUserName()));
@@ -42,11 +43,11 @@ public class MeetingInboxResponseController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    @GetMapping("/inbox/{userName}")
-    public ResponseEntity<List<Inbox>> getInboxForUserName(@PathVariable String userName, HttpServletRequest request) {
+    @GetMapping("/inbox")
+    public ResponseEntity<List<Inbox>> getInboxForUserName(HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            List<Inbox> meetingInboxList = meetingResponseService.getInboxForUserName(userName);
-            logger.info(String.format("Returning %s meeting invites for user:%s", meetingInboxList.size(), userName));
+            List<Inbox> meetingInboxList = meetingResponseService.getInboxForUserName(request.getHeader("userName"));
+            logger.info(String.format("Returning %s meeting invites for user:%s", meetingInboxList.size(), request.getHeader("userName")));
             return new ResponseEntity<>(meetingInboxList, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

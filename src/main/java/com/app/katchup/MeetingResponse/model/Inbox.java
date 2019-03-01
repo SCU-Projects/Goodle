@@ -25,4 +25,8 @@ public class Inbox {
     private String host;
 
     private Status status;
+
+    private int seats;
+
+    private String password;
 }
