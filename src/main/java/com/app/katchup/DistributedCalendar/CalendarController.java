@@ -49,23 +49,23 @@ public class CalendarController {
             } else {
                 List<String> meetingIdsList = meetingIds.stream().map(meetingID -> meetingID.getMeetingId()).collect(Collectors.toList());
                 meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
+                eventList = meetingDetailsList.stream()
+                        .map(meeting -> {
+                            Event event = new Event();
+                            event.setEndDateTime(meeting.getEndDateTime());
+                            event.setHost(meeting.getHost());
+                            event.setMeetingId(meeting.getMeetingId());
+                            event.setStartDateTime(meeting.getStartDateTime());
+                            event.setSubject(meeting.getSubject());
+                            event.setVenue(meeting.getVenue());
+                            return event;
+                        })
+                        .collect(Collectors.toList());
+                logger.info("all accepted events added to a new distributed calendar object");
+                distributedCalendar.setEventList(eventList);
             }
-
-            eventList = meetingDetailsList.stream()
-                    .map(meeting -> {
-                        Event event = new Event();
-                        event.setEndDateTime(meeting.getEndDateTime());
-                        event.setHost(meeting.getHost());
-                        event.setMeetingId(meeting.getMeetingId());
-                        event.setStartDateTime(meeting.getStartDateTime());
-                        event.setSubject(meeting.getSubject());
-                        event.setVenue(meeting.getVenue());
-                        return event;
-                    })
-                    .collect(Collectors.toList());
-            logger.info("all accepted events added to a new distributed calendar object");
-            distributedCalendar.setEventList(eventList);
             return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
+
         }
     }
 }
