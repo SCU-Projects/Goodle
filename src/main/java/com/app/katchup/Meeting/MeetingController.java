@@ -1,6 +1,7 @@
 package com.app.katchup.Meeting;
 
 import com.app.katchup.Exception.GenericException;
+import com.app.katchup.Exception.NotFoundException;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,9 @@ public class MeetingController {
     }
 
     @GetMapping("/meetings/{meetingId}/details")
-    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) {
+    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws NotFoundException {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingIds(meetingId, request.getHeader("userName"));
+            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
             if (meetingDetails != null) {
                 if (meetingDetails.get().getSeats() == -1)
                     meetingDetails.get().setSeats(1000);
@@ -51,8 +52,32 @@ public class MeetingController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @DeleteMapping("/meetings/{meetingId}")
+    public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws GenericException {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            meetingService.deleteMeeting(meetingId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
     private String generatePassword() {
         String password = UUID.randomUUID().toString();
         return password;
+    }
+
+    @PutMapping("meetings/{meetingId}")
+    public ResponseEntity<Meeting> putMeeting(@PathVariable String meetingId, @RequestBody Meeting meeting,
+                                              HttpServletRequest request) throws GenericException {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+            if (meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
+                throw new GenericException("Go with majority option is allowed for meetings with unlimited capacity.");
+            meeting.setHost(request.getHeader("userName"));
+            Meeting meetingObj = meetingService.updateMeeting(meetingId, request.getHeader("userName"), meeting);
+            if (meetingObj != null)
+                return new ResponseEntity<>(meetingObj, HttpStatus.OK);
+            return new ResponseEntity<>(meetingObj, HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 }

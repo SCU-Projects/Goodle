@@ -1,8 +1,10 @@
 package com.app.katchup.Meeting;
 
 import com.app.katchup.Exception.GenericException;
+import com.app.katchup.Exception.NotFoundException;
 import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.model.Meeting;
+import com.app.katchup.Meeting.model.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +33,32 @@ public class MeetingService {
         return meeting;
     }
 
-    public Optional<Meeting> getMeetingDetailsForMeetingIds(String meetingId, String userName) {
+    public Meeting updateMeeting(String meetingId, String hostName, Meeting meeting) throws GenericException {
+
+        Optional<Meeting> currentMeeting = this.getMeetingDetails(meetingId);
+        currentMeeting.orElseThrow(() -> new EntityNotFoundException("No such meeting found for given meeting id"));
+
+        if (!currentMeeting.get().getHost().equals(hostName))
+            throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
+
+        Meeting exitingMeeting = meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getStartDateTime(),
+                meeting.getEndDateTime(), meeting.getVenue());
+
+        if (exitingMeeting != null) {
+            throw new EntityExistsException("Sorry! Meeting cannot be updated. There exists another meeting on the given data");
+        }
+
+        if (!isDateTimeValid(meeting))
+            throw new GenericException("Either the meeting start time is after end time or the meeting date is  invalid");
+
+        meeting.setStatus(Status.UPDATE);
+        meeting = meetingRepository.save(meeting);
+        return meeting;
+    }
+
+    public Optional<Meeting> getMeetingDetailsForMeetingId(String meetingId, String userName) throws NotFoundException {
         Optional<Meeting> meeting = meetingRepository.findById(meetingId);
-        meeting.orElseThrow(() -> new EntityNotFoundException("No such meeting found for given meeting id"));
+        meeting.orElseThrow(() -> new NotFoundException("No such meeting found for given meeting id"));
         if (!this.isAuthorizedUserForAccessingMeeting(userName, meeting.get()))
             throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
         return meeting;
@@ -62,5 +87,12 @@ public class MeetingService {
     private boolean isDateTimeValid(Meeting meeting) {
         return ((meeting.getStartDateTime().compareTo(meeting.getEndDateTime()) <= 0) &&
                 (meeting.getStartDateTime().compareTo(LocalDateTime.now()) > 0));
+    }
+
+    public void deleteMeeting(String meetingId) throws GenericException {
+        Optional<Meeting> meeting = meetingRepository.findById(meetingId);
+        meeting.orElseThrow(() -> new GenericException("No such meeting found for given meeting id"));
+        meeting.get().setStatus(Status.DELETED);
+        meetingRepository.save(meeting.get());
     }
 }
