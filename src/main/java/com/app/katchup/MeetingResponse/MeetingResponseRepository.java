@@ -20,7 +20,7 @@ public interface MeetingResponseRepository extends CrudRepository<MeetingInboxRe
     @Query(value = "{'meetingId' : ?0}")
     List<MeetingInboxResponse> findAllbyMeetingID(String meetingId);
 
-    @Query(value = "{'userName' : ?0, 'decision': ?1}", fields = "{'meetingId':1}")
-    List<String> findAllMeetingIdsbyUserNameAndDecision(String userName, Decision decision);
+    @Query(value = "{'userName' : ?0, 'decision': ?1}")
+    List<MeetingID> findAllMeetingIdsbyUserNameAndDecision(String userName, Decision decision);
 }
 

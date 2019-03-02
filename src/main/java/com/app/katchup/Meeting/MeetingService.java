@@ -67,9 +67,7 @@ public class MeetingService {
     public boolean isAuthorizedUserForAccessingMeeting(String userName, Meeting meeting) {
         if (!meeting.getHost().equals(userName)) {
             HashSet<String> invitees = new HashSet<>(meeting.getInviteList());
-            if (!invitees.contains(userName)) {
-                return false;
-            }
+            return invitees.contains(userName);
         }
         return true;
     }

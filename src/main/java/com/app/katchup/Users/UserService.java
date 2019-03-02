@@ -60,9 +60,13 @@ public class UserService {
 
 	public boolean isCredentialsMatched(String userName, String password){
 		User user =  this.getUserByUserName(userName);
-        if (user != null && user.getPassword().equals(password))
+        if (user != null && user.getPassword().equals(password)) {
+			logger.info("username or password is valid");
 			return true;
-		return false;
+		} else {
+			logger.info("username or password is not  valid");
+			return false;
+		}
 	}
 
 }

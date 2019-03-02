@@ -11,4 +11,6 @@ import java.time.LocalDateTime;
 public interface MeetingRepository extends CrudRepository<Meeting, String> {
     @Query(value = "{'host' : ?0, 'startDateTime': ?1 , 'endDateTime':?2 , 'venue':?3, 'status':{$ne: 'DELETED'}}")
     Meeting findMeetingByFilter(String host, LocalDateTime startDateTime, LocalDateTime endDateTime, String venue);
+
+
 }
