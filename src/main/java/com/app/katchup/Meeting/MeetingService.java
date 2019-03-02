@@ -23,7 +23,7 @@ public class MeetingService {
     MeetingRepository meetingRepository;
 
     public Meeting createMeeting(Meeting meeting) throws GenericException {
-        if(meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getStartDateTime(),
+        if(meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getSubject(), meeting.getStartDateTime(),
                                                     meeting.getEndDateTime(), meeting.getVenue()) != null){
             throw new EntityExistsException("Sorry! Meeting cannot be created. There exists another meeting on the given data");
         }
@@ -40,7 +40,7 @@ public class MeetingService {
         if(!currentMeeting.get().getHost().equals(hostName))
             throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
 
-        Meeting exitingMeeting = meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getStartDateTime(),
+        Meeting exitingMeeting = meetingRepository.findMeetingByFilter(meeting.getHost(), meeting.getSubject(), meeting.getStartDateTime(),
                 meeting.getEndDateTime(), meeting.getVenue());
 
         if (exitingMeeting != null) {
@@ -66,6 +66,7 @@ public class MeetingService {
     public boolean isAuthorizedUserForAccessingMeeting(String userName, Meeting meeting){
        if(!meeting.getHost().equals(userName)) {
            HashSet<String> invitees = new HashSet<>(meeting.getInviteList());
+           invitees.addAll(meeting.getExtParticipantList());
            if (!invitees.contains(userName)) {
                return false;
            }
