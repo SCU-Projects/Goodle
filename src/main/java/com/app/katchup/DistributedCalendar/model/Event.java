@@ -10,6 +10,6 @@ public class Event {
     private String subject;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
-    String venue;
+    private String venue;
     private String host;
 }

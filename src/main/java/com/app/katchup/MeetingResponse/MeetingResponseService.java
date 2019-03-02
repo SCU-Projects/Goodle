@@ -66,24 +66,28 @@ public class MeetingResponseService {
 
         if (!isExternalParticipant)
             meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
-        else
+        else {
             meetingResponse = this.createExternalMeetingInboxResponse(meeting, userName);
+        }
+
 
         if (meetingResponse == null)
             throw new UnAuthorizedException("Sorry! You are not authorized to respond for this meeting");
 
-        if (meeting.getSeats() == 0) {
+        if (meeting.getSeats() == 0 && requestBody.getDecision() != Decision.DECLINE) {
             throw new NotFoundException("Sorry! No seats available");
         }
 
-        meetingResponse.setDecision(requestBody.getDecision());
 
         if (requestBody.getDecision() == Decision.ACCEPT) {
 
             if (meeting.getSeats() != -1) {
                 //if first time responding or previously declined
-                if (meetingResponse.getDecision() != Decision.ACCEPT)
-                    meeting.setSeats(meeting.getSeats() - 1);
+                if (meetingResponse.getDecision() != Decision.ACCEPT) {
+                    int currentSeats = meeting.getSeats() - 1;
+                    meeting.setSeats(currentSeats);
+                }
+
                 if (meeting.getSeats() == 0)
                     meeting.setStatus(Status.CLOSED);
             }
@@ -91,8 +95,10 @@ public class MeetingResponseService {
             if (meeting.getSeats() != -1) {
 
                 //if previously accepted
-                if (meetingResponse.getDecision() == Decision.ACCEPT)
-                    meeting.setSeats(meeting.getSeats() + 1);
+                if (meetingResponse.getDecision() == Decision.ACCEPT) {
+                    int currentSeats = meeting.getSeats() + 1;
+                    meeting.setSeats(currentSeats);
+                }
 
                 if (meeting.getSeats() > 0)
                     meeting.setStatus(Status.OPEN);
@@ -106,17 +112,18 @@ public class MeetingResponseService {
             if (!meeting.isGoWithMajorityAllowed())
                 throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Go With Majority' option");
         }
-
+        meetingResponse.setDecision(requestBody.getDecision());
         meetingResponseRepo.save(meetingResponse);
 
         if (isExternalParticipant) {
             //add new ext participant to the external participant list in Meeting
             List<String> externalParticipantsList = meeting.getExtParticipantList();
+            if (externalParticipantsList == null)
+                externalParticipantsList = new ArrayList<>();
             externalParticipantsList.add(userName);
             meeting.setExtParticipantList(externalParticipantsList);
-            meetingRepo.save(meeting);
         }
-
+        meetingRepo.save(meeting);
         return requestBody.getDecision();
     }
 

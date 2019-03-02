@@ -15,6 +15,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,7 +28,6 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private String meetingId;
 
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private  String password;
 
     @NotNull(message = MeetingConstants.subjectNullMessage)
@@ -45,7 +45,7 @@ public class Meeting {
     @NotNull(message = MeetingConstants.inviteListNullMessage)
     private List<String> inviteList;
 
-    private List<String> extParticipantList;
+    private List<String> extParticipantList = new ArrayList<>();
 
     @NotNull(message = MeetingConstants.venueNullMessage)
     @NotEmpty

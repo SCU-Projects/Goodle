@@ -2,10 +2,8 @@ package com.app.katchup.DistributedCalendar;
 
 import com.app.katchup.DistributedCalendar.model.DistributedCalendar;
 import com.app.katchup.DistributedCalendar.model.Event;
-import com.app.katchup.Exception.UnAuthorizedException;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
-import com.app.katchup.MeetingResponse.MeetingResponseRepository;
 import com.app.katchup.MeetingResponse.model.MeetingID;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -34,7 +32,6 @@ public class CalendarController {
     UserService userService;
     @Autowired
     MeetingService meetingService;
-    MeetingResponseRepository meetingResponseRepository;
 
     @GetMapping("/{userName}")
     public ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, HttpServletRequest request) {
@@ -43,18 +40,18 @@ public class CalendarController {
 
         else {
             List<MeetingID> meetingIds = calendarService.getAcceptedMeetingIds(userName);
-            List<Meeting> meetingList = new ArrayList<>();
+            List<Meeting> meetingDetailsList = new ArrayList<>();
+            DistributedCalendar distributedCalendar = new DistributedCalendar();
+            List<Event> eventList = new ArrayList<Event>();
 
-            if (meetingIds.size() <= 0)
-                throw new UnAuthorizedException("Sorry! User is not allowed to enter this meeting");
-
-            else if (meetingIds.size() > 0) {
+            if (meetingIds.isEmpty()) {
+                distributedCalendar.setEventList(eventList);
+            } else {
                 List<String> meetingIdsList = meetingIds.stream().map(meetingID -> meetingID.getMeetingId()).collect(Collectors.toList());
-                meetingList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
+                meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
             }
 
-            DistributedCalendar distributedCalendar = new DistributedCalendar();
-            List<Event> eventList = meetingList.stream()
+            eventList = meetingDetailsList.stream()
                     .map(meeting -> {
                         Event event = new Event();
                         event.setEndDateTime(meeting.getEndDateTime());
@@ -66,6 +63,7 @@ public class CalendarController {
                         return event;
                     })
                     .collect(Collectors.toList());
+            logger.info("all accepted events added to a new distributed calendar object");
             distributedCalendar.setEventList(eventList);
             return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
         }
