@@ -45,7 +45,8 @@ public class CalendarController {
             List<Event> eventList = new ArrayList<Event>();
 
             if (meetingIds.isEmpty()) {
-                distributedCalendar.setEventList(eventList);
+                if (meetingIds.size() == 0)
+                    distributedCalendar.setEventList(eventList);
             } else {
                 List<String> meetingIdsList = meetingIds.stream().map(meetingID -> meetingID.getMeetingId()).collect(Collectors.toList());
                 meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
