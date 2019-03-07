@@ -1,37 +1,71 @@
 package com.app.katchup.MeetingResponse;
 
+import com.app.katchup.Exception.GenericException;
 import com.app.katchup.Exception.NotAcceptableException;
 import com.app.katchup.Exception.NotFoundException;
 import com.app.katchup.Exception.UnAuthorizedException;
-import com.app.katchup.Meeting.MeetingRepository;
 import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Meeting.model.Status;
+import com.app.katchup.Meeting.repository.node0.MeetingNode0Repository;
+import com.app.katchup.Meeting.repository.node1.MeetingNode1Repository;
+import com.app.katchup.Meeting.repository.node2.MeetingNode2Repository;
+import com.app.katchup.Meeting.repository.primary.MeetingRepository;
 import com.app.katchup.MeetingResponse.model.*;
+import com.app.katchup.MeetingResponse.repository.node0.MeetingResponseNode0Repository;
+import com.app.katchup.MeetingResponse.repository.node1.MeetingResponseNode1Repository;
+import com.app.katchup.MeetingResponse.repository.node2.MeetingResponseNode2Repository;
+import com.app.katchup.MeetingResponse.repository.primary.MeetingResponseRepository;
+import com.app.katchup.Sharding.ShardingService;
+import com.app.katchup.Sharding.Utilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class MeetingResponseService {
     @Autowired
-    MeetingResponseRepository meetingResponseRepo;
+    MeetingResponseRepository meetingResponseRepository;
+
     @Autowired
-    MeetingRepository meetingRepo;
+    MeetingResponseNode0Repository meetingResponseNode0Repository;
+
+    @Autowired
+    MeetingResponseNode1Repository meetingResponseNode1Repository;
+
+    @Autowired
+    MeetingResponseNode2Repository meetingResponseNode2Repository;
+
+    @Autowired
+    MeetingRepository meetingRepository;
+
+    @Autowired
+    MeetingNode0Repository meetingNode0Repository;
+
+    @Autowired
+    MeetingNode1Repository meetingNode1Repository;
+
+    @Autowired
+    MeetingNode2Repository meetingNode2Repository;
+
+
     @Autowired
     MeetingService meetingService;
 
+    @Autowired
+    ShardingService shardingService;
+
     public List<Inbox> getInboxForUserName(String userName){
 
-        List<MeetingID> meetingIdList = meetingResponseRepo.findAllMeetingIdsbyUserName(userName);
+        List<MeetingID> meetingIdList = retrieveAllMeetingIdsByUserNameFromTable(userName);
         List<Meeting> meetingDetailsList = new ArrayList<>();
 
         if(meetingIdList.size() > 0){
             List<String> meetingIdsList = meetingIdList.stream().map(meetingID -> meetingID.getMeetingId()).collect(Collectors.toList());
-            meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(meetingIdsList);
+            Map<Integer, List<String>> databaseIdmeetingIdMap = shardingService.getDbIdMeetingIdMap(userName, meetingIdsList);
+            meetingDetailsList = meetingService.getMeetingDetailsForMeetingIds(databaseIdmeetingIdMap);
         }
 
         List<Inbox> inboxList = meetingDetailsList.stream().map(meeting -> {
@@ -55,17 +89,17 @@ public class MeetingResponseService {
     }
 
     public MeetingInboxResponse postInboxForUserName(MeetingInboxResponse meetingInboxResponse){
-        meetingResponseRepo.save(meetingInboxResponse);
+        meetingInboxResponse = saveTableInDb(meetingInboxResponse);
         return meetingInboxResponse;
     }
 
-   public Decision putResponseForMeeting(boolean isExternalParticipant, Meeting meeting, String userName, MeetingRequestBody requestBody)
-           throws  NotFoundException, NotAcceptableException {
+    public Decision putResponseForMeeting(boolean isExternalParticipant, Meeting meeting, String userName, MeetingRequestBody requestBody)
+            throws Exception {
 
         MeetingInboxResponse meetingResponse;
 
         if(!isExternalParticipant)
-            meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
+            meetingResponse = meetingResponseRepository.findByUserNameAndMeetingID(userName, meeting.getMeetingId());
         else{
             meetingResponse = this.createExternalMeetingInboxResponse(meeting, userName);
         }
@@ -117,7 +151,7 @@ public class MeetingResponseService {
                 throw new NotAcceptableException("Sorry! The meeting host didn't enable the 'Go With Majority' option");
         }
         meetingResponse.setDecision(requestBody.getDecision());
-        meetingResponseRepo.save(meetingResponse);
+        saveTableInDb(meetingResponse);
 
         if(isExternalParticipant){
             //add new ext participant to the external participant list in Meeting
@@ -127,7 +161,7 @@ public class MeetingResponseService {
             externalParticipantsList.add(userName);
             meeting.setExtParticipantList(externalParticipantsList);
         }
-        meetingRepo.save(meeting);
+        meetingService.saveMeetingToTable(meeting);
         return requestBody.getDecision();
    }
 
@@ -139,12 +173,12 @@ public class MeetingResponseService {
     }
 
     public MeetingInboxResponse getResponseForMeeting(String userName, String meetingId){
-        MeetingInboxResponse meetingResponse = meetingResponseRepo.findByUserNameAndMeetingID(userName, meetingId);
+        MeetingInboxResponse meetingResponse = meetingResponseRepository.findByUserNameAndMeetingID(userName, meetingId);
         return meetingResponse;
    }
 
     public MeetingStats getStatsForMeeting(Meeting meeting) {
-        List<MeetingInboxResponse> meetingInboxResponseList = meetingResponseRepo.findAllbyMeetingID(meeting.getMeetingId());
+        List<MeetingInboxResponse> meetingInboxResponseList = retrieveAllFromTableByMeetingId(meeting.getMeetingId());
         List<String> acceptedInvitees = getUserNameFromMeetingResponses(Decision.ACCEPT, meetingInboxResponseList);
         List<String> declinedInvitees = getUserNameFromMeetingResponses(Decision.DECLINE, meetingInboxResponseList);
         List<PolledParticipants> polledInvitees = getPolledParticipantsFromMeetingResponses(meetingInboxResponseList);
@@ -192,4 +226,75 @@ public class MeetingResponseService {
                 .collect(Collectors.toList());
         return polledParticipantsList;
     }
+
+    private Optional<Meeting> retrieveFromTable(String meetingId, String host) throws Exception {
+        Integer databaseId = Utilities.getShardedDBLocation(host).ordinal();
+        return retrieveFromTable(meetingId, databaseId);
+    }
+
+    public Optional<Meeting> retrieveFromTable(String meetingId, int databaseId){
+        switch (databaseId){
+            case 0:
+                return meetingNode0Repository.findById(meetingId);
+            case 1:
+                return meetingNode1Repository.findById(meetingId);
+            case 2:
+                return meetingNode2Repository.findById(meetingId);
+        }
+        return null;
+    }
+
+    public List<MeetingInboxResponse> retrieveAllFromTableByMeetingId(String meetingId){
+        List<MeetingInboxResponse> result = new ArrayList<>();
+        result.addAll(meetingResponseNode0Repository.findAllbyMeetingID(meetingId));
+        result.addAll(meetingResponseNode1Repository.findAllbyMeetingID(meetingId));
+        result.addAll(meetingResponseNode2Repository.findAllbyMeetingID(meetingId));
+        return result;
+    }
+
+    private List<MeetingID> retrieveAllMeetingIdsByUserNameFromTable(String userName) {
+        Integer databaseId = Utilities.getShardedDBLocation(userName).ordinal();
+        List<MeetingID> meetingIdList = new ArrayList<>();
+        switch (databaseId){
+            case 0:
+                meetingIdList = meetingResponseNode0Repository.findAllMeetingIdsbyUserName(userName);
+                break;
+            case 1:
+                meetingIdList = meetingResponseNode1Repository.findAllMeetingIdsbyUserName(userName);
+                break;
+            case 2:
+                meetingIdList = meetingResponseNode2Repository.findAllMeetingIdsbyUserName(userName);
+        }
+        return meetingIdList;
+    }
+
+    private Meeting retrieveMeetingByFilter(Meeting meeting, String host){
+        Integer databaseId = Utilities.getShardedDBLocation(host).ordinal();
+        switch (databaseId){
+            case 0:
+                return meetingNode0Repository.findMeetingByFilter(meeting.getHost(), meeting.getSubject(), meeting.getStartDateTime(),
+                        meeting.getEndDateTime(), meeting.getVenue());
+            case 1:
+                return meetingNode1Repository.findMeetingByFilter(meeting.getHost(), meeting.getSubject(), meeting.getStartDateTime(),
+                        meeting.getEndDateTime(), meeting.getVenue());
+            case 2:
+                return meetingNode2Repository.findMeetingByFilter(meeting.getHost(), meeting.getSubject(), meeting.getStartDateTime(),
+                        meeting.getEndDateTime(), meeting.getVenue());
+        }
+        return null;
+    }
+
+    private MeetingInboxResponse saveTableInDb(MeetingInboxResponse meetingInboxResponse) {
+        Integer databaseId = Utilities.getShardedDBLocation(meetingInboxResponse.getUserName()).ordinal();
+        switch (databaseId){
+            case 0:
+                return meetingResponseNode0Repository.save(meetingInboxResponse);
+            case 1:
+                return meetingResponseNode1Repository.save(meetingInboxResponse);
+            case 2:
+                return meetingResponseNode2Repository.save(meetingInboxResponse);
+        }
+        throw new GenericException("Error saving record in table");
+    }
+
 }

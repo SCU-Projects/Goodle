@@ -1,11 +1,18 @@
 package com.app.katchup.Users;
 
+import com.app.katchup.Exception.NotFoundException;
+import com.app.katchup.Sharding.Utilities;
+import com.app.katchup.Users.repository.node0.UserNode0Repository;
+import com.app.katchup.Users.repository.node1.UserNode1Repository;
+import com.app.katchup.Users.repository.node2.UserNode2Repository;
+import com.app.katchup.Users.repository.primary.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -13,48 +20,46 @@ public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
+	@Autowired
+	private UserNode0Repository userNode0Repository;
+
+	@Autowired
+	private UserNode1Repository userNode1Repository;
+
+	@Autowired
+	private UserNode2Repository userNode2Repository;
+
+
+
 	public User getUserByUserName(String userName) {
-		User user = userRepository.findByUserName(userName);
-		if(user == null) {
+		User user = retrieveFromTable(userName);
+		if(user == null)
 			logger.info("GET User {} not found.",userName);
-			return user;
-		}
-		logger.info("GET User {} returned.",userName);
+		else
+			logger.info("GET User {} returned.",userName);
 		return user;
 	}
-	
-	public List<User> getAllUsers(){
-		List<User> users = new ArrayList<>();
-		userRepository.findAll().forEach(users::add);
-		logger.info("GET User {} returned.", users);
-		return users;
-	}
-	
-	public User addUser(User user) {
+
+	public User addUser(User user) throws Exception {
 	    user.setUserName(user.getUserName().replaceAll("\\s+",""));
-		if(userRepository.findByUserName(user.getUserName()) != null) {
+		if(retrieveFromTable(user.getUserName()) != null) {
 			logger.error("POST User {} already exists.",user.getUserName());
 			return null;
 		}
-		userRepository.save(user);
-		if(userRepository.findByUserName(user.getUserName()) == null) {
-			logger.error("POST User {} not saved.", user.getUserName());
-			return null;
-		}
+		user = saveUserToTable(user);
 		logger.info("POST User {} created.", user.getUserName());
 		return user;
-	}	
-	
-	public User deleteUserByUsername(String username) {
-		User user = userRepository.findByUserName(username);
+	}
+
+	public void deleteUserByUsername(String userName) throws Exception {
+		User user = retrieveFromTable(userName);
 		if(user == null) {
-			logger.error("DELETE User {} not found.", username);
-			return user;
+			logger.error("DELETE User {} not found.", userName);
+			throw new NotFoundException("User not found");
 		}
-		userRepository.delete(user);
-		logger.info("DELETE User {} deleted.", username);
-		return user;
+		deleteUserFromTable(user);
+		logger.info("DELETE User {} deleted.", userName);
 	}
 
 	public boolean isCredentialsMatched(String userName, String password){
@@ -62,6 +67,51 @@ public class UserService {
 		if(user != null && user.getPassword().equals(password))
 			return true;
 		return false;
+	}
+
+	private User saveUserToTable(User user) throws Exception {
+		Integer databaseId = Utilities.getShardedDBLocation(user.getUserName()).ordinal();
+		switch (databaseId){
+			case 0:
+				return userNode0Repository.save(user);
+			case 1:
+				return userNode1Repository.save(user);
+			case 2:
+				return userNode2Repository.save(user);
+			default:
+				throw new Exception("Error saving user to the table");
+		}
+	}
+
+	private void deleteUserFromTable(User user) throws Exception {
+		Integer databaseId = Utilities.getShardedDBLocation(user.getUserName()).ordinal();
+		switch (databaseId){
+			case 0:
+				 userNode0Repository.delete(user);
+				 break;
+			case 1:
+				userNode1Repository.delete(user);
+				break;
+			case 2:
+				 userNode2Repository.delete(user);
+				 break;
+			default:
+				throw new Exception("Error deleting user from the table");
+		}
+	}
+
+
+	private User retrieveFromTable(String userName){
+		Integer databaseId = Utilities.getShardedDBLocation(userName).ordinal();
+		switch (databaseId){
+			case 0:
+				return userNode0Repository.findByUserName(userName);
+			case 1:
+				return userNode1Repository.findByUserName(userName);
+			case 2:
+				return userNode2Repository.findByUserName(userName);
+		}
+		return null;
 	}
 
 }

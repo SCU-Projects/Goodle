@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -49,8 +51,9 @@ public class CalendarController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {
             List<String> meetingIds = calendarService.getAcceptedMeetingIds(user.getUserName());
-
-            List<Meeting> meetingList = meetingService.getMeetingDetailsForMeetingIds(meetingIds);
+            Map<Integer, List<String>> databaseIdmeetingIdMap = new HashMap<>();
+            //get sharding user to groupBy db ids
+            List<Meeting> meetingList = meetingService.getMeetingDetailsForMeetingIds(databaseIdmeetingIdMap);
 
             DistributedCalendar distributedCalendar = new DistributedCalendar();
 

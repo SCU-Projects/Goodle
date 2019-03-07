@@ -18,12 +18,6 @@ public class UserController {
 	@Autowired
 	UserService userService;
 	
-	@GetMapping()
-	public ResponseEntity<List<User>> getAllUsers(){
-	    List<User> users = userService.getAllUsers();
-	    return new ResponseEntity<>(users, HttpStatus.OK);
-	}
-	
 	@GetMapping("/{userName}")
 	public ResponseEntity<User> getUserByUserName(@PathVariable String userName){
 	    User user=  userService.getUserByUserName(userName);
@@ -33,7 +27,7 @@ public class UserController {
 	}
 	
 	@PostMapping()
-	public ResponseEntity<User> addUser(@RequestBody @Valid User user){
+	public ResponseEntity<User> addUser(@RequestBody @Valid User user) throws Exception {
 		user = userService.addUser(user);
 		if(user == null)
 			return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -41,10 +35,8 @@ public class UserController {
 	}
 	
 	@DeleteMapping("/{userName}")
-	public ResponseEntity<User> deleteUser(@PathVariable String userName){
-		 User user = userService.deleteUserByUsername(userName);
-		 if(user == null)
-			 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<User> deleteUser(@PathVariable String userName) throws Exception {
+		 userService.deleteUserByUsername(userName);
 		 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 }

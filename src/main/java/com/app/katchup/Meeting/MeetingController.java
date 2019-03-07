@@ -22,7 +22,7 @@ public class MeetingController {
     UserService userService;
 
     @PostMapping("/meeting/create")
-    public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws GenericException {
+    public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws Exception {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
 
             if(meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
@@ -39,7 +39,7 @@ public class MeetingController {
     }
 
     @GetMapping("/meetings/{meetingId}/details")
-    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws NotFoundException {
+    public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
             if(meetingDetails != null) {
@@ -53,9 +53,9 @@ public class MeetingController {
     }
 
     @DeleteMapping("/meetings/{meetingId}")
-    public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws GenericException {
+    public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            meetingService.deleteMeeting(meetingId);
+            meetingService.deleteMeeting(request.getHeader("userName"), meetingId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -68,7 +68,7 @@ public class MeetingController {
 
     @PutMapping("meetings/{meetingId}")
     public ResponseEntity<Meeting> putMeeting(@PathVariable String meetingId, @RequestBody Meeting meeting,
-                                              HttpServletRequest request) throws GenericException {
+                                              HttpServletRequest request) throws Exception {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             if (meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
                 throw new GenericException("Go with majority option is allowed for meetings with unlimited capacity.");

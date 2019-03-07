@@ -7,6 +7,8 @@ import com.app.katchup.Meeting.MeetingService;
 import com.app.katchup.Meeting.model.Meeting;
 import com.app.katchup.Meeting.model.Status;
 import com.app.katchup.MeetingResponse.model.*;
+import com.app.katchup.Sharding.ShardingService;
+import com.app.katchup.Sharding.Utilities;
 import com.app.katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +33,9 @@ public class MeetingInboxResponseController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    ShardingService shardingService;
 
     @PostMapping("/inbox")
     public ResponseEntity<MeetingInboxResponse> postInbox(@RequestBody MeetingInboxResponse meetingInboxObject,
@@ -68,7 +73,7 @@ public class MeetingInboxResponseController {
 
     @GetMapping("/meetings/{meetingId}/stats")
     public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
-                                            HttpServletRequest request) throws NotFoundException {
+                                            HttpServletRequest request) throws Exception {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
             MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeeting(meeting.get());
@@ -89,8 +94,9 @@ public class MeetingInboxResponseController {
         //for comparing the passwords
         if (!userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password")))
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-        Optional<Meeting> meeting = meetingService.getMeetingDetails(meetingId);
+        int sourceDbId = Utilities.getShardedDBLocation(request.getHeader("userName")).ordinal();
+        int targetDbId = shardingService.getMeetingDbLocationForUser(sourceDbId, meetingId);
+        Optional<Meeting> meeting = meetingService.retrieveFromTable(meetingId, targetDbId);
         meeting.orElseThrow(() -> new NotFoundException("Sorry! Meeting does not exist"));
 
         if(meeting.get().getStatus().equals(Status.DELETED))
