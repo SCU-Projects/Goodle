@@ -21,6 +21,9 @@ public class MeetingController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    MeetingSender meetingSender;
+
     @PostMapping("/meeting/create")
     public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws GenericException {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
@@ -31,6 +34,7 @@ public class MeetingController {
             meeting.setHost(request.getHeader("userName"));
             meeting.setPassword(this.generatePassword());
             Meeting meetingObj = meetingService.createMeeting(meeting);
+            meetingSender.sendData(meetingObj);
             if(meeting != null)
                 return new ResponseEntity<>(meetingObj, HttpStatus.CREATED);
             return new ResponseEntity<>(meetingObj,HttpStatus.CONFLICT);
