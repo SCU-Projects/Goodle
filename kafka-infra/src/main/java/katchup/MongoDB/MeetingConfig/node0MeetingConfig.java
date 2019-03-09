@@ -1,0 +1,35 @@
+package katchup.MongoDB.MeetingConfig;
+
+
+import com.mongodb.MongoClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+
+@Configuration
+@EnableMongoRepositories(basePackages = "katchup.Meeting.repository.node0",
+                                    mongoTemplateRef = "node0MeetingMongoTemplate")
+public class node0MeetingConfig {
+    @Value( "${mongodb.node0.host}" )
+    String host;
+
+    @Value("${mongodb.node0.port}")
+    int port;
+
+    @Value( "${mongodb.database}")
+    String db;
+
+    @Bean(name = "node0MeetingMongoTemplate")
+    public MongoTemplate node0MeetingMongoTemplate() throws Exception {
+        return new MongoTemplate(node0MeetingMongoFactory());
+    }
+
+    @Bean(name = "node0MeetingMongoFactory")
+    public MongoDbFactory node0MeetingMongoFactory() throws Exception {
+        return new SimpleMongoDbFactory(new MongoClient(host, port), db);
+    }
+}
