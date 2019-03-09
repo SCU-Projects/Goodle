@@ -8,7 +8,8 @@ import katchup.Meeting.model.Status;
 import katchup.Meeting.repository.node0.MeetingNode0Repository;
 import katchup.Meeting.repository.node1.MeetingNode1Repository;
 import katchup.Meeting.repository.node2.MeetingNode2Repository;
-import katchup.Meeting.repository.primary.MeetingRepository;
+import katchup.MeetingResponse.model.Decision;
+import katchup.MeetingResponse.model.MeetingID;
 import katchup.Sharding.ShardingService;
 import katchup.Sharding.Utilities;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,6 @@ public class MeetingService {
 
     @Autowired
     ShardingService shardingService;
-
-//    @Autowired
-//    MeetingRepository meetingPrimaryRepository;
 
     @Autowired
     MeetingNode0Repository meetingNode0Repository;
@@ -45,17 +43,12 @@ public class MeetingService {
             throw new GenericException("Either the meeting start time is after end time or the meeting date is  invalid");
         meeting = saveMeetingToTable(meeting);
         return meeting;
-        //meeting = meetingPrimaryRepository.save(meeting);
-//        ApplicationContext ctx =
-//                new AnnotationConfigApplicationContext(node1Config.class);
-//        MongoOperations mongoOperation = (MongoOperations) ctx.getBean("node1MongoTemplate");
-//        mongoOperation.save(meeting);
-
     }
     public Meeting updateMeeting(String meetingId, String hostName, Meeting meeting) throws Exception {
 
         Optional<Meeting> currentMeeting = this.getMeetingDetails(meetingId, hostName);
-        currentMeeting.orElseThrow(() -> new EntityNotFoundException("No such meeting found for given meeting id"));
+        currentMeeting.orElseThrow(() -> new NotFoundException("Either you dont have the permission to access this resource or " +
+                                                                    "No such meeting found for given meeting id"));
 
         if(!currentMeeting.get().getHost().equals(hostName))
             throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
@@ -70,23 +63,25 @@ public class MeetingService {
             throw new GenericException("Either the meeting start time is after end time or the meeting date is  invalid");
 
         meeting.setStatus(Status.UPDATE);
-        meeting = saveMeetingToTable(meeting);
+        meeting = updateMeetingTable(meeting);
         return meeting;
     }
     
-    public Optional<Meeting> getMeetingDetailsForMeetingId(String meetingId, String userName) throws Exception {
+    public Optional<Meeting> getMeetingDetailsForMeetingId(Boolean onlyHost, String meetingId, String userName) throws Exception {
         //get user's meeting's db location and then query on that location
        int sourceDbId = Utilities.getShardedDBLocation(userName).ordinal();
        int targetDbId = shardingService.getMeetingDbLocationForUser(sourceDbId, meetingId);
        Optional<Meeting> meeting =  retrieveFromTable(meetingId, targetDbId);
        meeting.orElseThrow(() -> new NotFoundException("No such meeting found for given meeting id"));
-       if(!this.isAuthorizedUserForAccessingMeeting(userName, meeting.get()))
+       if(!this.isAuthorizedUserForAccessingMeeting(onlyHost, userName, meeting.get()))
            throw new UnAuthorizedException("Sorry! You don't have the permission to access this resource");
        return meeting;
     }
 
-    public boolean isAuthorizedUserForAccessingMeeting(String userName, Meeting meeting){
+    public boolean isAuthorizedUserForAccessingMeeting(Boolean onlyHost, String userName, Meeting meeting){
        if(!meeting.getHost().equals(userName)) {
+           if(onlyHost)
+               return false;
            HashSet<String> invitees = new HashSet<>(meeting.getInviteList());
            invitees.addAll(meeting.getExtParticipantList());
            if (!invitees.contains(userName)) {
@@ -115,9 +110,9 @@ public class MeetingService {
 
     public void deleteMeeting(String meetingId, String host) throws Exception {
         Optional<Meeting> meeting = retrieveFromTable(meetingId, host);
+        meeting.orElseThrow(() -> new NotFoundException("Sorry! The meeting does not exist."));
         meeting.get().setStatus(Status.DELETED);
         saveMeetingToTable(meeting.get());
-        throw new Exception("Error saving meeting to the table");
     }
 
     private boolean isDateTimeValid(Meeting meeting ){
@@ -125,25 +120,40 @@ public class MeetingService {
                 (meeting.getStartDateTime().compareTo(LocalDateTime.now()) > 0));
     }
 
-
-    public Meeting saveMeetingToTable(Meeting meeting ) throws Exception {
-        Integer databaseId = Utilities.getShardedDBLocation(meeting.getHost()).ordinal();
-        switch (databaseId){
-            case 0:
-                return meetingNode0Repository.save(meeting);
-            case 1:
-                return meetingNode1Repository.save(meeting);
-            case 2:
-                return meetingNode2Repository.save(meeting);
-            default:
-                throw new Exception("Error saving meeting to the table");
-        }
+    public Meeting updateMeetingTable(Meeting meeting) throws Exception {
+       return saveToTable(meeting);
     }
 
+    public Meeting saveMeetingToTable(Meeting meeting) throws Exception {
+        meeting = saveToTable(meeting);
+        Integer databaseId = Utilities.getShardedDBLocation(meeting.getHost()).ordinal();
+        //shardingService.createLookUpForMeetingId(databaseId, meeting.getMeetingId());{final}
+        for(int i = 0; i <= 2; i++)
+            shardingService.createLookUpForMeetingId(i, databaseId, meeting.getMeetingId());
+        return meeting;
+    }
 
     private Optional<Meeting> retrieveFromTable(String meetingId, String host) throws Exception {
         Integer databaseId = Utilities.getShardedDBLocation(host).ordinal();
-       return retrieveFromTable(meetingId, databaseId);
+        return retrieveFromTable(meetingId, databaseId);
+    }
+
+    private Meeting saveToTable(Meeting meeting) throws Exception {
+        Integer databaseId = Utilities.getShardedDBLocation(meeting.getHost()).ordinal();
+        switch (databaseId){
+            case 0:
+                meeting = meetingNode0Repository.save(meeting);
+                break;
+            case 1:
+                meeting =  meetingNode1Repository.save(meeting);
+                break;
+            case 2:
+                meeting =  meetingNode2Repository.save(meeting);
+                break;
+            default:
+                throw new Exception("Error saving meeting to the table");
+        }
+        return meeting;
     }
 
     public Optional<Meeting> retrieveFromTable(String meetingId, int databaseId){

@@ -1,4 +1,4 @@
-package katchup.config;
+package katchup.config.user;
 
 
 import org.springframework.context.annotation.Configuration;

@@ -66,6 +66,8 @@ public class MeetingInboxResponseController {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             MeetingInboxResponse meetingResponse = meetingResponseService.getResponseForMeeting(
                                                             request.getHeader("userName"), meetingId);
+            if(meetingResponse == null)
+                throw new NotFoundException("Sorry! The meeting does not exist.");
             return new ResponseEntity<>(meetingResponse, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -75,7 +77,7 @@ public class MeetingInboxResponseController {
     public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
                                             HttpServletRequest request) throws Exception {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
+            Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingId(true, meetingId, request.getHeader("userName"));
             MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeeting(meeting.get());
             return new ResponseEntity<>(meetingResponseStats, HttpStatus.OK);
         }
@@ -103,12 +105,12 @@ public class MeetingInboxResponseController {
             throw new NotAcceptableException("Sorry! Meeting has been cancelled by the Host");
 
         //host or valid invitee
-        if(!meetingService.isAuthorizedUserForAccessingMeeting(request.getHeader("userName"), meeting.get())){
+        if(!meetingService.isAuthorizedUserForAccessingMeeting(false, request.getHeader("userName"), meeting.get())){
             if(!meeting.get().isExternalParticipantsAllowed()){
                 throw new UnAuthorizedException("Sorry! User is not allowed to enter this meeting");
             }
             if(!meeting.get().getPassword().equals(requestBody.getMeetingPassword()))
-                throw new UnAuthorizedException("No matching records found for the provided meetingid and password");
+                throw new UnAuthorizedException("No matching records found for the provided meeting-id and password");
 
             isExternalParticipant = true;
         }

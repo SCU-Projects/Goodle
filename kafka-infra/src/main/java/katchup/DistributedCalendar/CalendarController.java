@@ -1,9 +1,10 @@
 package katchup.DistributedCalendar;
 
-import katchup.DistributedCalendar.model.DistributedCalendar;
-import katchup.DistributedCalendar.model.Event;
+import katchup.DistributedCalendar.model.*;
+import katchup.DistributedCalendar.CalendarService;
 import katchup.Meeting.MeetingService;
 import katchup.Meeting.model.Meeting;
+import katchup.MeetingResponse.model.MeetingID;
 import katchup.Users.User;
 import katchup.Users.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -17,9 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,51 +30,33 @@ public class CalendarController {
 
     @Autowired
     CalendarService calendarService;
+
     @Autowired
     UserService userService;
+
     @Autowired
     MeetingService meetingService;
 
+    @GetMapping()
+    public ResponseEntity<DistributedCalendar> showUserEvents(HttpServletRequest request) {
 
-    @GetMapping("/{userName}")
-    public ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, HttpServletRequest request) {
-
-        User user = userService.getUserByUserName(userName);
-        if (user == null) {
-            logger.info("user name is not valid");
+        if (!userService.isCredentialsMatched(request.getHeader("username"), request.getHeader("password")))
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
 
-        boolean t = userService.isCredentialsMatched(user.getUserName(), request.getHeader("password"));
-        if (t) {
-            logger.info("user password not valid");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } else {
-            List<String> meetingIds = calendarService.getAcceptedMeetingIds(user.getUserName());
-            Map<Integer, List<String>> databaseIdmeetingIdMap = new HashMap<>();
-            //get sharding user to groupBy db ids
-            List<Meeting> meetingList = meetingService.getMeetingDetailsForMeetingIds(databaseIdmeetingIdMap);
+        List<MeetingID> meetingIds = calendarService.getAcceptedMeetingIds(request.getHeader("username"));
+        DistributedCalendar distributedCalendar = new DistributedCalendar();
 
-            DistributedCalendar distributedCalendar = new DistributedCalendar();
-
-            List<Event> eventList = meetingList.stream()
-                    .map(meeting -> {
-                        Event event = new Event();
-                        event.setEndDateTime(meeting.getEndDateTime());
-                        event.setHost(meeting.getHost());
-                        event.setMeetingId(meeting.getMeetingId());
-                        event.setStartDateTime(meeting.getStartDateTime());
-                        //                        distributedCalendar.setSubject(meeting.getSubject());
-                        event.setVenue(meeting.getVenue());
-                        return event;
-                    })
-                    .collect(Collectors.toList());
+        if (meetingIds.isEmpty()) {
+            logger.info("there are no meetings accepted by user, returning an empty event list");
+            List<Event> eventList = new ArrayList<Event>();
             distributedCalendar.setEventList(eventList);
-
-            return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
         }
+        else
+            distributedCalendar = calendarService.addAcceptedEventsToDistributedCalendar(request.getHeader("username"), meetingIds);
 
+        return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);
 
     }
-
 }
+
+

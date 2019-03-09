@@ -22,5 +22,5 @@ public interface MeetingResponseNode2Repository extends CrudRepository<MeetingIn
     List<MeetingInboxResponse> findAllbyMeetingID(String meetingId);
 
     @Query(value = "{'userName' : ?0, 'decision': ?1}", fields = "{'meetingId':1}")
-    List<String> findAllMeetingIdsbyUserNameAndDecision(String userName, Decision decision);
+    List<MeetingID> findAllMeetingIdsbyUserNameAndDecision(String userName, Decision decision);
 }

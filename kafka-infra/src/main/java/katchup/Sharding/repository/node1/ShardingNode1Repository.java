@@ -9,9 +9,10 @@ import java.util.List;
 
 @Repository
 public interface ShardingNode1Repository extends CrudRepository<Sharding, String> {
-    @Query(value = "{'meetingId' : ?0}", fields = "{'meetingId':1, 'databaseId':1}")
+    @Query(value = "{'meetingId': {$in: ?0}}", fields = "{'meetingId':1, 'databaseId':1}")
     List<Sharding> findAllByMeetingIds(List<String> meetingIdList);
 
     @Query(value = "{'meetingId' : ?0}", fields = "{'meetingId':1, 'databaseId':1}")
     Sharding findByMeetingId(String meetingId);
 }
+

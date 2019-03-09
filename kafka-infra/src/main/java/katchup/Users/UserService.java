@@ -5,7 +5,6 @@ import katchup.Sharding.Utilities;
 import katchup.Users.repository.node0.UserNode0Repository;
 import katchup.Users.repository.node1.UserNode1Repository;
 import katchup.Users.repository.node2.UserNode2Repository;
-import katchup.Users.repository.primary.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +16,6 @@ import java.util.Optional;
 @Service
 public class UserService {
 	private static final Logger logger = LogManager.getLogger(katchup.Users.UserService.class);
-
-//	@Autowired
-//	private UserRepository userRepository;
 
 	@Autowired
 	private UserNode0Repository userNode0Repository;

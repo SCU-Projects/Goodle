@@ -21,12 +21,8 @@ public class MeetingController {
     @Autowired
     UserService userService;
 
-    @Autowired
-    MeetingSender meetingSender;
-
     @PostMapping("/meeting/create")
     public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws Exception {
-        meetingSender.sendData(meeting);
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
 
             if(meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
@@ -45,7 +41,7 @@ public class MeetingController {
     @GetMapping("/meetings/{meetingId}/details")
     public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(meetingId, request.getHeader("userName"));
+            Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(false, meetingId, request.getHeader("userName"));
             if(meetingDetails != null) {
                 if (meetingDetails.get().getSeats() == -1)
                     meetingDetails.get().setSeats(1000);
@@ -59,7 +55,7 @@ public class MeetingController {
     @DeleteMapping("/meetings/{meetingId}")
     public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
         if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
-            meetingService.deleteMeeting(request.getHeader("userName"), meetingId);
+            meetingService.deleteMeeting(meetingId, request.getHeader("userName"));
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

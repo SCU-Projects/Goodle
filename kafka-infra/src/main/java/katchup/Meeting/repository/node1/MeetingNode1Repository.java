@@ -1,11 +1,14 @@
 package katchup.Meeting.repository.node1;
 
 import katchup.Meeting.model.Meeting;
+import katchup.MeetingResponse.model.Decision;
+import katchup.MeetingResponse.model.MeetingID;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface MeetingNode1Repository extends CrudRepository<Meeting,String> {
