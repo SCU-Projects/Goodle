@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @Configuration
 @EnableMongoRepositories(basePackages = "katchup.Users.repository.node2",
-        mongoTemplateRef = "node2MongoTemplate")
-public class node2MongoConfig {
+        mongoTemplateRef = "node2UserMongoTemplate")
+public class node2UserMongoConfig {
 }
