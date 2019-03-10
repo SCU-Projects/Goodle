@@ -18,7 +18,7 @@ import java.util.Map;
 @Configuration
 public class KafkaConfiguration {
 
-    @Bean
+  /*  @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class KafkaConfiguration {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory();
         factory.setConsumerFactory(consumerFactory());
         return factory;
-    }
+    }*/
 
 
     @Bean
