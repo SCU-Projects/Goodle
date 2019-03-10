@@ -22,7 +22,7 @@ public class MeetingSender {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    private static final String TOPIC = "split";
+    private static final String TOPIC = "MEETING-CREATION";
 
     public void sendData(String meetingId) {
          Map<String, Object> headers = new HashMap<>();
