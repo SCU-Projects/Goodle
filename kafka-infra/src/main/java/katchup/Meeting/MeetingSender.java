@@ -1,5 +1,6 @@
 package katchup.Meeting;
 
+import katchup.Meeting.model.Meeting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class MeetingSender {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    private static final String TOPIC = "MEETING-CREATION";
+    private static final String TOPIC = "MEETING-CREATION-FROM-INFRA";
 
     public void sendData(String meetingId) {
         Map<String, Object> headers = new HashMap<>();

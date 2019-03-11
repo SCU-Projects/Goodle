@@ -1,6 +1,8 @@
 package katchup.Meeting;
 
+import katchup.Meeting.model.Meeting;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +21,7 @@ public class MeetingConfig {
     public DefaultKafkaProducerFactory<String, String> producerMeetingFactory() {
         Map<String, Object> config = new HashMap<>();
 
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, String.valueOf(StringSerializer.class.getName()));
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, String.valueOf(JsonSerializer.class.getName()));
 

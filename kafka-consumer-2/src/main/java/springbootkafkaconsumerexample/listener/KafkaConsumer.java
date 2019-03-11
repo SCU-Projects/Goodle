@@ -1,15 +1,14 @@
-package com.techprimers.kafka.springbootkafkaconsumerexample.listener;
+package springbootkafkaconsumerexample.listener;
 
-import com.techprimers.kafka.springbootkafkaconsumerexample.model.User;
-import com.techprimers.kafka.springbootkafkaconsumerexample.repository.node0.Node0Repository;
 import katchup.Exception.NotAcceptableException;
 import katchup.MeetingResponse.model.MeetingInboxResponse;
-import katchup.Sharding.Utilities;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import springbootkafkaconsumerexample.model.User;
+import springbootkafkaconsumerexample.repository.node2.Node2Repository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -20,7 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static katchup.Sharding.Utilities.*;
+import static katchup.Sharding.Utilities.getShardedDBLocation;
 
 @Service
 public class KafkaConsumer {
@@ -28,14 +27,14 @@ public class KafkaConsumer {
     private static final Logger logger = LogManager.getLogger(KafkaConsumer.class);
 
     @Autowired
-    Node0Repository node0Repository;
+    Node2Repository node2Repository;
 
-    @KafkaListener(topics = "example", groupId = "group_id-0")
+    @KafkaListener(topics = "example", groupId = "group_id-2")
     public void consume(String message) {
         System.out.println("Consumed message: " + message);
     }
 
-    @KafkaListener(topics = "MEETING-CREATION-FROM-INFRA", groupId = "group_json-0",
+    @KafkaListener(topics = "MEETING-CREATION-FROM-INFRA", groupId = "group_json-2",
             containerFactory = "userKafkaListenerFactory")
     public void consumeJson(User user) {
         System.out.println("Consumed JSON Message: " + user);
@@ -54,7 +53,7 @@ public class KafkaConsumer {
         List<MeetingInboxResponse> meetingInvites = new ArrayList<>();
         meetingInvites = inviteesList
                             .stream()
-                            .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 0)
+                            .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 2)
                             .map(invitee -> {
                                 MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
                                 meetingInvite.setMeetingId(meetingId);
@@ -62,8 +61,8 @@ public class KafkaConsumer {
                                 return meetingInvite;
                             })
                             .collect(Collectors.toList());
-        node0Repository.saveAll(meetingInvites);
-        logger.info("Invitee list saved successfully in DB-0");
+        node2Repository.saveAll(meetingInvites);
+        logger.info("Invitee list saved successfully in DB-2");
     }
 
     private List<String> getInvitees(String inputString){
