@@ -79,6 +79,8 @@ public class MeetingController {
                 throw new GenericException("Go with majority option is allowed for meetings with unlimited capacity.");
             meeting.setHost(request.getHeader("userName"));
             Meeting meetingObj = meetingService.updateMeeting(meetingId, request.getHeader("userName"), meeting);
+            String meetingUpdate = meeting.getMeetingId();
+            meetingSender.sendUpdate(meetingUpdate);
             if (meetingObj != null)
                 return new ResponseEntity<>(meetingObj, HttpStatus.OK);
             return new ResponseEntity<>(meetingObj, HttpStatus.CONFLICT);

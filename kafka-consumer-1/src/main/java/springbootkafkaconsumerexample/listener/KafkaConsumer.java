@@ -49,23 +49,60 @@ public class KafkaConsumer {
         logger.info(String.format("Took:%d", duration.getNano()));
     }
 
+    @KafkaListener(topics = "MEETING-UPDATE", groupId = "group_json-111",
+            containerFactory = "meetingKafkaListenerFactory")
+    public void consumeUpdateJson(User user) {
+        System.out.println("Consumed JSON Message: " + user);
+        LocalDateTime time = LocalDateTime.now();
+        logger.info(String.format("Starting to update: %s", time));
+        updateToTable(user.toString());
+        logger.info(String.format("Ending to update: %s", LocalDateTime.now()));
+        Duration duration = Duration.between(time, LocalDateTime.now());
+        logger.info(String.format("Took:%d", duration.getNano()));
+    }
+
+    private void updateToTable(String meetingId) {
+        List<MeetingInboxResponse> meetingResponseList = node1Repository.findAllbyMeetingID(meetingId);
+        meetingResponseList = meetingResponseList
+                .stream()
+                .map(response -> {
+                    response.setDecision(null);
+                    return response;
+                })
+                .collect(Collectors.toList());
+        if(!meetingResponseList.isEmpty()){
+            node1Repository.saveAll(meetingResponseList);
+            logger.info("Invitee response cleared successfully in DB-1");
+        }
+        else{
+            logger.info("No invitees to process update ignoring in DB-1");
+        }
+
+    }
     private void saveToTable(String inputString){
         List<String> inviteesList = getInvitees(inputString);
         String meetingId = getMeetingId(inputString);
 
         List<MeetingInboxResponse> meetingInvites = new ArrayList<>();
         meetingInvites = inviteesList
-                            .stream()
-                            .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 1)
-                            .map(invitee -> {
-                                MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
-                                meetingInvite.setMeetingId(meetingId);
-                                meetingInvite.setUserName(invitee);
-                                return meetingInvite;
-                            })
-                            .collect(Collectors.toList());
-        node1Repository.saveAll(meetingInvites);
-        logger.info("Invitee list saved successfully in DB-1");
+                .stream()
+                .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 2)
+                .map(invitee -> {
+                    MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
+                    meetingInvite.setMeetingId(meetingId);
+                    meetingInvite.setUserName(invitee);
+                    return meetingInvite;
+                })
+                .collect(Collectors.toList());
+
+        if(!meetingInvites.isEmpty()){
+            node1Repository.saveAll(meetingInvites);
+            logger.info("Invitee list saved successfully in DB-1");
+        }
+        else{
+            logger.info("No invitees to process save ignoring in DB-1");
+        }
+
     }
 
     private List<String> getInvitees(String inputString){

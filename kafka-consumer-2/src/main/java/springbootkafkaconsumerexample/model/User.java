@@ -17,6 +17,6 @@ public class User {
     }
     @Override
     public String toString() {
-        return "Meeting -" + meetingId ;
+        return meetingId ;
     }
 }

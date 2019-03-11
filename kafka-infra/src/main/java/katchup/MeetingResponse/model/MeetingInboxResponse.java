@@ -33,4 +33,9 @@ public class MeetingInboxResponse {
     private Decision decision;
     private LocalDateTime alternativeStartDateTime;
     private LocalDateTime alternativeEndDateTime;
+
+//    public MeetingInboxResponse(String invitee, String meetingId) {
+//        this.userName = invitee;
+//        this.meetingId = meetingId;
+//    }
 }
