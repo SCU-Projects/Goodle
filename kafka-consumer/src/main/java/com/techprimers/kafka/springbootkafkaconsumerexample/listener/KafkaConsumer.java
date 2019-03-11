@@ -84,7 +84,7 @@ public class KafkaConsumer {
         List<MeetingInboxResponse> meetingInvites = new ArrayList<>();
         meetingInvites = inviteesList
                 .stream()
-                .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 2)
+                .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 0)
                 .map(invitee -> {
                     MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
                     meetingInvite.setMeetingId(meetingId);
