@@ -6,7 +6,7 @@ import katchup.Sharding.repository.node0.ShardingNode0Repository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication()//scanBasePackageClasses = {MeetingService.class, ShardingService.class, ShardingNode0Repository.class})
+@SpringBootApplication()
 public class SpringBootKafkaConsumerExampleApplication {
 
 	public static void main(String[] args) {
