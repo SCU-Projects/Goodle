@@ -23,6 +23,7 @@ public class MeetingSender {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     private static final String TOPIC = "MEETING-CREATION-FROM-INFRA";
+    private static final String TOPIC2 = "MEETING-UPDATE";
 
     public void sendData(String meetingId) {
         Map<String, Object> headers = new HashMap<>();
@@ -30,5 +31,13 @@ public class MeetingSender {
         ListenableFuture<SendResult<String, String>> result = kafkaTemplate.send(new GenericMessage<String>(meetingId, headers));
         System.out.println("Data - " + meetingId + " sent to Kafka Topic - " + "test");
         logger.info("Data - " + meetingId + " sent to Kafka Topic - \" + \"test \n + Res"+result);
+    }
+
+    public void sendUpdate(String meetingId) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(KafkaHeaders.TOPIC, TOPIC2);
+        ListenableFuture<SendResult<String, String>> result = kafkaTemplate.send(new GenericMessage<String>(meetingId, headers));
+        System.out.println("Update - " + meetingId + " sent to Kafka Topic - " + "test");
+        logger.info("Update - " + meetingId + " sent to Kafka Topic - \" + \"test \n + Res"+result);
     }
 }
