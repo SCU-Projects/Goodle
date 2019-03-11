@@ -1,8 +1,5 @@
-package com.techprimers.kafka.springbootkafkaconsumerexample;
+package springbootkafkaconsumerexample;
 
-import katchup.Meeting.MeetingService;
-import katchup.Sharding.ShardingService;
-import katchup.Sharding.repository.node0.ShardingNode0Repository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

@@ -34,7 +34,7 @@ public class MeetingController {
             meeting.setHost(request.getHeader("userName"));
             meeting.setPassword(this.generatePassword());
             Meeting meetingObj = meetingService.createMeeting(meeting);
-            String meetingData = meeting.getHost()+":"+meeting.getMeetingId();
+            String meetingData = meeting.getInviteList()+":"+meeting.getMeetingId();
             meetingSender.sendData(meetingData);
             if(meeting != null)
                 return new ResponseEntity<>(meetingObj, HttpStatus.CREATED);
