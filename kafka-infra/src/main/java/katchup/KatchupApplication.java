@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @SpringBootApplication(scanBasePackages={"katchup"} )
 @EnableEurekaClient
 public class KatchupApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(KatchupApplication.class, args);
 	}

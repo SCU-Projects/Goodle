@@ -8,15 +8,12 @@ import katchup.Meeting.model.Status;
 import katchup.Meeting.repository.node0.MeetingNode0Repository;
 import katchup.Meeting.repository.node1.MeetingNode1Repository;
 import katchup.Meeting.repository.node2.MeetingNode2Repository;
-import katchup.MeetingResponse.model.Decision;
-import katchup.MeetingResponse.model.MeetingID;
 import katchup.Sharding.ShardingService;
 import katchup.Sharding.Utilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.*;
 

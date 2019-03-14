@@ -1,7 +1,6 @@
 package katchup.Meeting;
 
 import katchup.Exception.GenericException;
-import katchup.Exception.NotFoundException;
 import katchup.Meeting.model.Meeting;
 import katchup.Users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
