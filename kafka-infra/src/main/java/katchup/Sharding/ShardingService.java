@@ -26,18 +26,18 @@ public class ShardingService {
     @Autowired
     ShardingNode2Repository shardingNode2Repository;
 
-    public Map<Integer, List<String>> getDbIdMeetingIdMap(String userName, List<String> meetingIdsList){
+    public Map<Integer, List<String>> getDbIdMeetingIdMap(String userName, List<String> meetingIdsList) {
         int dbID = Utilities.getShardedDBLocation(userName).ordinal();
         return retrieveAllFromTable(dbID, meetingIdsList);
     }
 
-    private  Map<Integer, List<String>> retrieveAllFromTable(Integer databaseId, List<String> meetingIdList) {
+    private Map<Integer, List<String>> retrieveAllFromTable(Integer databaseId, List<String> meetingIdList) {
         //find the parent table of the meetingIDs
         Map<Integer, List<String>> databaseIdmeetingIdMap = new HashMap<>();
         List<Sharding> result = new ArrayList<>();
-        switch (databaseId){
+        switch (databaseId) {
             case 0:
-                result =  shardingNode0Repository.findAllByMeetingIds(meetingIdList);
+                result = shardingNode0Repository.findAllByMeetingIds(meetingIdList);
                 break;
             case 1:
                 result = shardingNode1Repository.findAllByMeetingIds(meetingIdList);
@@ -46,27 +46,27 @@ public class ShardingService {
                 result = shardingNode2Repository.findAllByMeetingIds(meetingIdList);
                 break;
         }
-        for(int i = 0; i < 3; i++){
+        for (int i = 0; i < 3; i++) {
             int dbId = i;
             List<String> dbMeetingIds = result.stream()
-                                            .filter(response -> response.getDatabaseId() == dbId)
-                                            .map(Sharding::getMeetingId)
-                                            .collect(Collectors.toList());
+                    .filter(response -> response.getDatabaseId() == dbId)
+                    .map(Sharding::getMeetingId)
+                    .collect(Collectors.toList());
             databaseIdmeetingIdMap.put(i, dbMeetingIds);
         }
         return databaseIdmeetingIdMap;
     }
 
-    private  int retrieveDbIdForMeetingIdFromTable(String userName, String meetingId) {
+    private int retrieveDbIdForMeetingIdFromTable(String userName, String meetingId) {
         int databaseId = Utilities.getShardedDBLocation(userName).ordinal();
         return getMeetingDbLocationForUser(databaseId, meetingId);
     }
 
     public int getMeetingDbLocationForUser(int databaseId, String meetingId) {
         Sharding result = new Sharding();
-        switch (databaseId){
+        switch (databaseId) {
             case 0:
-                result =  shardingNode0Repository.findByMeetingId(meetingId);
+                result = shardingNode0Repository.findByMeetingId(meetingId);
                 break;
             case 1:
                 result = shardingNode1Repository.findByMeetingId(meetingId);
@@ -75,7 +75,7 @@ public class ShardingService {
                 result = shardingNode2Repository.findByMeetingId(meetingId);
                 break;
         }
-        if(result == null)
+        if (result == null)
             throw new UnAuthorizedException("Sorry! User is not allowed to access this meeting or Meeting id does not exist");
         return result.getDatabaseId();
     }
@@ -88,7 +88,7 @@ public class ShardingService {
         Sharding record = new Sharding();
         record.setDatabaseId(databaseId);
         record.setMeetingId(meetingId);
-        switch (targetDatabaseId){
+        switch (targetDatabaseId) {
             case 0:
                 return shardingNode0Repository.save(record);
             case 1:

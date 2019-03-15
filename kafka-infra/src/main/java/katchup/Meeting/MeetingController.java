@@ -25,28 +25,28 @@ public class MeetingController {
 
     @PostMapping("/meeting/create")
     public ResponseEntity<Meeting> postMeeting(@RequestBody Meeting meeting, HttpServletRequest request) throws Exception {
-        if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
 
-            if(meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
+            if (meeting.isGoWithMajorityAllowed() && meeting.getSeats() != -1)
                 throw new GenericException("Go with majority option is allowed for meetings with unlimited capacity.");
 
             meeting.setHost(request.getHeader("userName"));
             meeting.setPassword(this.generatePassword());
             Meeting meetingObj = meetingService.createMeeting(meeting);
-            String meetingData = meeting.getInviteList()+":"+meeting.getMeetingId();
+            String meetingData = meeting.getInviteList() + ":" + meeting.getMeetingId();
             meetingSender.sendData(meetingData);
-            if(meeting != null)
+            if (meeting != null)
                 return new ResponseEntity<>(meetingObj, HttpStatus.CREATED);
-            return new ResponseEntity<>(meetingObj,HttpStatus.CONFLICT);
+            return new ResponseEntity<>(meetingObj, HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping("/meetings/{meetingId}/details")
     public ResponseEntity<Optional<Meeting>> getMeetingDetails(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
-        if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             Optional<Meeting> meetingDetails = meetingService.getMeetingDetailsForMeetingId(false, meetingId, request.getHeader("userName"));
-            if(meetingDetails != null) {
+            if (meetingDetails != null) {
                 if (meetingDetails.get().getSeats() == -1)
                     meetingDetails.get().setSeats(1000);
                 return new ResponseEntity<>(meetingDetails, HttpStatus.OK);
@@ -58,14 +58,14 @@ public class MeetingController {
 
     @DeleteMapping("/meetings/{meetingId}")
     public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) throws Exception {
-        if(userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
+        if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             meetingService.deleteMeeting(meetingId, request.getHeader("userName"));
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    private String generatePassword(){
+    private String generatePassword() {
         String password = UUID.randomUUID().toString();
         return password;
     }

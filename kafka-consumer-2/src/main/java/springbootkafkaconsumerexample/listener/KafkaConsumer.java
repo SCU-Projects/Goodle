@@ -45,6 +45,7 @@ public class KafkaConsumer {
         Duration duration = Duration.between(time, LocalDateTime.now());
         logger.info(String.format("Took:%d", duration.getNano()));
     }
+
     @KafkaListener(topics = "MEETING-UPDATE", groupId = "group_json-222",
             containerFactory = "meetingKafkaListenerFactory")
     public void consumeUpdateJson(User user) {
@@ -66,42 +67,41 @@ public class KafkaConsumer {
                     return response;
                 })
                 .collect(Collectors.toList());
-        if(!meetingResponseList.isEmpty()){
+        if (!meetingResponseList.isEmpty()) {
             node2Repository.saveAll(meetingResponseList);
             logger.info("Invitee response cleared successfully in DB-2");
-        }
-        else{
+        } else {
             logger.info("No invitees to process update ignoring in DB-2");
         }
 
     }
-    private void saveToTable(String inputString){
+
+    private void saveToTable(String inputString) {
         List<String> inviteesList = getInvitees(inputString);
         String meetingId = getMeetingId(inputString);
 
         List<MeetingInboxResponse> meetingInvites = new ArrayList<>();
         meetingInvites = inviteesList
-                            .stream()
-                            .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 2)
-                            .map(invitee -> {
-                                MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
-                                meetingInvite.setMeetingId(meetingId);
-                                meetingInvite.setUserName(invitee);
-                                return meetingInvite;
-                            })
-                            .collect(Collectors.toList());
+                .stream()
+                .filter(invitee -> getShardedDBLocation(invitee).ordinal() == 2)
+                .map(invitee -> {
+                    MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
+                    meetingInvite.setMeetingId(meetingId);
+                    meetingInvite.setUserName(invitee);
+                    return meetingInvite;
+                })
+                .collect(Collectors.toList());
 
-        if(!meetingInvites.isEmpty()){
+        if (!meetingInvites.isEmpty()) {
             node2Repository.saveAll(meetingInvites);
             logger.info("Invitee list saved successfully in DB-2");
-        }
-        else{
+        } else {
             logger.info("No invitees to process save ignoring in DB-2");
         }
 
     }
 
-    private List<String> getInvitees(String inputString){
+    private List<String> getInvitees(String inputString) {
         String pattern = "\\[(.+)\\]:(.*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(inputString);
@@ -116,15 +116,13 @@ public class KafkaConsumer {
 
     }
 
-    private String getMeetingId(String inputString){
+    private String getMeetingId(String inputString) {
         String pattern = "\\[(.+)\\]:(.*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(inputString);
         m.find();
         return m.group(2);
     }
-
-
 
 
 }

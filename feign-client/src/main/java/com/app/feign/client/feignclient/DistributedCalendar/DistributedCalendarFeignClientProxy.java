@@ -12,6 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 public interface DistributedCalendarFeignClientProxy {
 
     @GetMapping("/{userName}")
-    public ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, HttpServletRequest request);
+    ResponseEntity<DistributedCalendar> showUserEvents(@PathVariable String userName, HttpServletRequest request);
 
     }

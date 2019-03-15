@@ -1,6 +1,7 @@
 package com.app.feign.client.feignclient.Users;
 
 import katchup.Users.User;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,16 +13,16 @@ import java.util.List;
 public interface UserFeignClientProxy {
 
     @GetMapping(value = "/users")
-    public ResponseEntity<List<User>> getAllUsers();
+    ResponseEntity<List<User>> getAllUsers();
 
     @GetMapping("/users/{userName}")
-    public ResponseEntity<User> getUserByUserName(@PathVariable String userName);
+    ResponseEntity<User> getUserByUserName(@PathVariable String userName);
 
     @PostMapping()
-    public ResponseEntity<User> addUser(@RequestBody @Valid User user);
+    ResponseEntity<User> addUser(@RequestBody @Valid User user);
 
     @DeleteMapping("/{userName}")
-    public ResponseEntity<User> deleteUser(@PathVariable String userName);
+    ResponseEntity<User> deleteUser(@PathVariable String userName);
 
 
 }

@@ -32,7 +32,7 @@ public class SwaggerConfig {
                 "1.0",
                 "https://github.com/SCU-Projects/KatchUp",
                 new Contact("KatchUp", "https://github.com/SCU-Projects/KatchUp",
-            "reply+00e71a59fdaa746554f19698cb6613b6442b7900ba51d29292cf000000011891e7cb92a169ce18d120fd@reply.github.com"),
-            "https://github.com/SCU-Projects/KatchUp", "https://github.com/SCU-Projects/KatchUp", Collections.emptyList());
+                        "reply+00e71a59fdaa746554f19698cb6613b6442b7900ba51d29292cf000000011891e7cb92a169ce18d120fd@reply.github.com"),
+                "https://github.com/SCU-Projects/KatchUp", "https://github.com/SCU-Projects/KatchUp", Collections.emptyList());
     }
 }

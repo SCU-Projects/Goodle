@@ -26,7 +26,7 @@ public class CalendarService {
 
 
     public List<MeetingID> getAcceptedMeetingIds(String userName) {
-        return  meetingResponseService.getMeetingIdListForUserNameAndDecision(userName, Decision.ACCEPT);
+        return meetingResponseService.getMeetingIdListForUserNameAndDecision(userName, Decision.ACCEPT);
     }
 
     public DistributedCalendar addAcceptedEventsToDistributedCalendar(String userName, List<MeetingID> meetingIds) {

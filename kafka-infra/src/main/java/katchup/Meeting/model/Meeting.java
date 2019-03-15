@@ -28,7 +28,7 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private String meetingId;
 
-    private  String password;
+    private String password;
 
     @NotNull(message = MeetingConstants.subjectNullMessage)
     @NotEmpty

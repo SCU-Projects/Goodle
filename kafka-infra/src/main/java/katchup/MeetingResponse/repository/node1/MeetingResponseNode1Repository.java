@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface MeetingResponseNode1Repository extends CrudRepository<MeetingInboxResponse,String> {
+public interface MeetingResponseNode1Repository extends CrudRepository<MeetingInboxResponse, String> {
     @Query(value = "{'userName' : ?0}", fields = "{'meetingId':1}")
     List<MeetingID> findAllMeetingIdsbyUserName(String userName);
 

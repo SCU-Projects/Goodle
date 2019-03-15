@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MeetingResponseNode2Repository extends CrudRepository<MeetingInboxResponse,String> {
+public interface MeetingResponseNode2Repository extends CrudRepository<MeetingInboxResponse, String> {
     @Query(value = "{'userName' : ?0}", fields = "{'meetingId':1}")
     List<MeetingID> findAllMeetingIdsbyUserName(String userName);
 

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,7 @@ public class MeetingInboxResponseController {
 
     @PostMapping("/inbox")
     public ResponseEntity<MeetingInboxResponse> postInbox(@RequestBody MeetingInboxResponse meetingInboxObject,
-                                                                                            HttpServletRequest request) {
+                                                          HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             meetingInboxObject.setUserName(request.getHeader("userName"));
             MeetingInboxResponse invite = meetingResponseService.postInboxForUserName(meetingInboxObject);
@@ -64,8 +65,8 @@ public class MeetingInboxResponseController {
                                                                           HttpServletRequest request) {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             MeetingInboxResponse meetingResponse = meetingResponseService.getResponseForMeeting(
-                                                            request.getHeader("userName"), meetingId);
-            if(meetingResponse == null)
+                    request.getHeader("userName"), meetingId);
+            if (meetingResponse == null)
                 throw new NotFoundException("Sorry! The meeting does not exist.");
             return new ResponseEntity<>(meetingResponse, HttpStatus.OK);
         }
@@ -74,7 +75,7 @@ public class MeetingInboxResponseController {
 
     @GetMapping("/meetings/{meetingId}/stats")
     public ResponseEntity<MeetingStats> getMeetingStatsForMeeting(@PathVariable String meetingId,
-                                            HttpServletRequest request) throws Exception {
+                                                                  HttpServletRequest request) throws Exception {
         if (userService.isCredentialsMatched(request.getHeader("userName"), request.getHeader("password"))) {
             Optional<Meeting> meeting = meetingService.getMeetingDetailsForMeetingId(true, meetingId, request.getHeader("userName"));
             MeetingStats meetingResponseStats = meetingResponseService.getStatsForMeeting(meeting.get());
@@ -85,7 +86,7 @@ public class MeetingInboxResponseController {
 
     @PutMapping("/meetings/{meetingId}/response")
     public ResponseEntity<Decision> putUserDecisionForMeetingInviteResponse(@PathVariable String meetingId,
-                                HttpServletRequest request, @RequestBody MeetingRequestBody requestBody)
+                                                                            HttpServletRequest request, @RequestBody MeetingRequestBody requestBody)
             throws Exception {
 
         boolean isExternalParticipant = false;
@@ -100,15 +101,15 @@ public class MeetingInboxResponseController {
         Optional<Meeting> meeting = meetingService.retrieveFromTable(meetingId, targetDbId);
         meeting.orElseThrow(() -> new NotFoundException("Sorry! Meeting does not exist"));
 
-        if(meeting.get().getStatus().equals(Status.DELETED))
+        if (meeting.get().getStatus().equals(Status.DELETED))
             throw new NotAcceptableException("Sorry! Meeting has been cancelled by the Host");
 
         //host or valid invitee
-        if(!meetingService.isAuthorizedUserForAccessingMeeting(false, request.getHeader("userName"), meeting.get())){
-            if(!meeting.get().isExternalParticipantsAllowed()){
+        if (!meetingService.isAuthorizedUserForAccessingMeeting(false, request.getHeader("userName"), meeting.get())) {
+            if (!meeting.get().isExternalParticipantsAllowed()) {
                 throw new UnAuthorizedException("Sorry! User is not allowed to enter this meeting");
             }
-            if(!meeting.get().getPassword().equals(requestBody.getMeetingPassword()))
+            if (!meeting.get().getPassword().equals(requestBody.getMeetingPassword()))
                 throw new UnAuthorizedException("No matching records found for the provided meeting-id and password");
 
             isExternalParticipant = true;
