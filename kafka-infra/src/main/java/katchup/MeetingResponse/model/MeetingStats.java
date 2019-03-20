@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MeetingStats {
-    String  meetingId;
+    String meetingId;
     Integer totalSeats;
     Integer seatsOccupied;
     Integer seatsAvailable;

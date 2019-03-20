@@ -50,8 +50,7 @@ public class CalendarController {
             logger.info("there are no meetings accepted by user, returning an empty event list");
             List<Event> eventList = new ArrayList<Event>();
             distributedCalendar.setEventList(eventList);
-        }
-        else
+        } else
             distributedCalendar = calendarService.addAcceptedEventsToDistributedCalendar(request.getHeader("username"), meetingIds);
 
         return new ResponseEntity<>(distributedCalendar, HttpStatus.OK);

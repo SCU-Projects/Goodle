@@ -35,14 +35,15 @@ public class MeetingFeignClientController {
     @PutMapping("/feign/meetings/{meetingId}")
     public ResponseEntity<Meeting> putMeeting(@PathVariable String meetingId, @RequestBody Meeting meeting, HttpServletRequest request) {
         HttpEntity<Meeting> requestObject = new HttpEntity<>(meeting, UtilityFunctions.getUserDetailsFromRequest(request));
-        ResponseEntity<Meeting> meetingResponseEntity = (ResponseEntity<Meeting>) this.restTemplate.exchange("http://katchup-service/meetings/" + meetingId, HttpMethod.PUT, requestObject, Meeting.class);
+        ResponseEntity<Meeting> meetingResponseEntity = this.restTemplate.exchange("http://katchup-service/meetings/" + meetingId, HttpMethod.PUT, requestObject, Meeting.class);
         return meetingResponseEntity;
     }
+
 
     @DeleteMapping("/meetings/{meetingId}")
     public ResponseEntity<Meeting> deleteMeeting(@PathVariable String meetingId, HttpServletRequest request) {
         HttpEntity<String> requestObject = new HttpEntity<>(UtilityFunctions.getUserDetailsFromRequest(request));
-        ResponseEntity<Meeting> optionalResponseEntity = (ResponseEntity) this.restTemplate.exchange("http://katchup-service/meetings/" + meetingId, HttpMethod.DELETE, requestObject, Meeting.class);
+        ResponseEntity<Meeting> optionalResponseEntity = this.restTemplate.exchange("http://katchup-service/meetings/" + meetingId, HttpMethod.DELETE, requestObject, Meeting.class);
         return optionalResponseEntity;
 
     }

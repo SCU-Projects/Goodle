@@ -70,23 +70,23 @@ public class KafkaConsumer {
                     return response;
                 })
                 .collect(Collectors.toList());
-        if(!meetingResponseList.isEmpty()){
+        if (!meetingResponseList.isEmpty()) {
             node1Repository.saveAll(meetingResponseList);
             logger.info("Invitee response cleared successfully in DB-1");
-        }
-        else{
+        } else {
             logger.info("No invitees to process update ignoring in DB-1");
         }
 
     }
-    private void saveToTable(String inputString){
+
+    private void saveToTable(String inputString) {
         List<String> inviteesList = getInvitees(inputString);
         String meetingId = getMeetingId(inputString);
 
         List<MeetingInboxResponse> meetingInvites = new ArrayList<>();
         meetingInvites = inviteesList
                 .stream()
-                .filter(invitee -> getShardedDBLocation(invitee).ordinal()  == 1)
+                .filter(invitee -> getShardedDBLocation(invitee).ordinal() == 1)
                 .map(invitee -> {
                     MeetingInboxResponse meetingInvite = new MeetingInboxResponse();
                     meetingInvite.setMeetingId(meetingId);
@@ -95,17 +95,16 @@ public class KafkaConsumer {
                 })
                 .collect(Collectors.toList());
 
-        if(!meetingInvites.isEmpty()){
+        if (!meetingInvites.isEmpty()) {
             node1Repository.saveAll(meetingInvites);
             logger.info("Invitee list saved successfully in DB-1");
-        }
-        else{
+        } else {
             logger.info("No invitees to process save ignoring in DB-1");
         }
 
     }
 
-    private List<String> getInvitees(String inputString){
+    private List<String> getInvitees(String inputString) {
         String pattern = "\\[(.+)\\]:(.*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(inputString);
@@ -120,15 +119,13 @@ public class KafkaConsumer {
 
     }
 
-    private String getMeetingId(String inputString){
+    private String getMeetingId(String inputString) {
         String pattern = "\\[(.+)\\]:(.*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(inputString);
         m.find();
         return m.group(2);
     }
-
-
 
 
 }

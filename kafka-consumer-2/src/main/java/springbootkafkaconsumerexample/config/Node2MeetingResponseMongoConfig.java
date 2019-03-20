@@ -6,6 +6,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @Configuration
 @EnableMongoRepositories(basePackages = "springbootkafkaconsumerexample.repository.node2",
-                                                mongoTemplateRef = "node2MeetingResponseMongoTemplate")
+        mongoTemplateRef = "node2MeetingResponseMongoTemplate")
 public class Node2MeetingResponseMongoConfig {
 }

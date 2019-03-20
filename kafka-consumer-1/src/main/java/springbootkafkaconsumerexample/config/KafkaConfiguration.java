@@ -56,6 +56,7 @@ public class KafkaConfiguration {
         factory.setConsumerFactory(userConsumerFactory());
         return factory;
     }
+
     @Bean
     public ConsumerFactory<String, User> meetingConsumerFactory() {
         Map<String, Object> config = new HashMap<>();

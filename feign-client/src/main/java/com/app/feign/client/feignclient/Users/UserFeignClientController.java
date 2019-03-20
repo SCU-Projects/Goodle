@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 @RestController
 public class UserFeignClientController {
-    private Logger logger = (Logger) Logger.getLogger(String.valueOf(this.getClass()));
+    private Logger logger = Logger.getLogger(String.valueOf(this.getClass()));
 
     @Autowired
     RestTemplate restTemplate;

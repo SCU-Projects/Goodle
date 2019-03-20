@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 @EnableConfigurationProperties(NodeMongoProperties.class)
 public class NodeMongoConfig {
     private final NodeMongoProperties mongoProperties;
+
     @Bean
     public MongoDbFactory node2MeetingResponseFactory(final NodeMongoProperties mongo) throws Exception {
         return new SimpleMongoDbFactory(new MongoClient(mongo.getNode2().getHost(), mongo.getNode2().getPort()),
